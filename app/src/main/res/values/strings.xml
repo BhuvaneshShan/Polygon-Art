@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">PolygonArt</string>
+    <string name="action_settings">Settings</string>
+    <string name="clear">Clear</string>
+    <string name="save">Save</string>
+    <string name="tool">Tool</string>
+</resources>
