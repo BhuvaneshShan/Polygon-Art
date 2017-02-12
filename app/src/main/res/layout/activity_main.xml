@@ -1,28 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-    <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".MainActivity"
-        android:orientation="vertical"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="36dp">
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:orientation="vertical"
+    android:layout_alignParentBottom="true"
+    android:layout_alignParentStart="true"
+    android:layout_marginBottom="36dp">
 
-        <bhuva.polygonart.DrawingView
-            android:id="@+id/simpleDrawingView1"
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            />
-    <!--<android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar_bottom"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:background="?attr/colorPrimary"
-        android:layout_alignParentBottom="true"
-        android:minHeight="?attr/actionBarSize" />-->
+            android:text="New"
+            android:id="@+id/buttonNew"
+            android:textColor="#e51c1c"
+            android:background="#ffffff"
+            android:clickable="true"
+            android:layout_gravity="left"
+            android:onClick="onClickCreateNewFile"/>
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Brush Size"
+            android:id="@+id/buttonBrushSize"
+            android:textColor="#e51c1c"
+            android:background="#ffffff"
+            android:clickable="true"
+            android:onClick="onClickBrushSize"/>
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Color"
+            android:id="@+id/buttonColor"
+            android:textColor="#e51c1c"
+            android:background="#ffffff"
+            android:clickable="true"
+            android:onClick="onClickColorSelector"/>
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Done"
+            android:id="@+id/buttonDone"
+            android:textColor="#e51c1c"
+            android:background="#ffffff"
+            android:clickable="true"
+            android:layout_gravity="right"
+            android:onClick="onClickDone"/>
 
     </LinearLayout>
+
+    <bhuva.polygonart.DrawingView
+        android:id="@+id/simpleDrawingView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        />
+
+</LinearLayout>
 

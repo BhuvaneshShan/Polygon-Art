@@ -29,13 +29,13 @@ import bhuva.polygonart.UI.SelectionCircle;
  */
 public class PolyartMgr {
 
-    private ArrayList<Triangle> triangles;
-    private int triCount = 0;
-    private boolean triangleCreationInProgress = false;
+    private static ArrayList<Triangle> triangles;
+    private static int triCount = 0;
+    private static boolean triangleCreationInProgress = false;
 
     private Paint paint;
-    private int curColor = Color.MAGENTA;
-    private int curBrushSize = 50;
+    private static int curColor = Color.MAGENTA;
+    private static int curBrushSize = 50;
 
     private NearestNeighbor nearestNeighborMgr;
     private Vector<SelectionCircle> selCircles;
@@ -165,7 +165,8 @@ public class PolyartMgr {
         Triangle t = Triangle.randomUnitTriangle();
         t.scale(curBrushSize);
         t.translate(x, y);
-        t.setColor(Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)));
+        //t.setColor(Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)));
+        t.setColor(Color.argb(255, Color.red(curColor) + rnd.nextInt(20), Color.green(curColor) + rnd.nextInt(20), Color.blue(curColor) + rnd.nextInt(20)));
         return t;
     }
 
@@ -230,7 +231,8 @@ public class PolyartMgr {
         PointF newVert = dir.translatePointBy(mid, len+curBrushSize);
         Log.d(TAG,"final new vert: "+newVert.x+", "+newVert.y);
         Triangle newT = new Triangle(verts.get(0), verts.get(1), newVert);
-        newT.setColor(Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)));
+        newT.setColor(Color.argb(255, Color.red(curColor) + rnd.nextInt(2), Color.green(curColor)+rnd.nextInt(2), Color.blue(curColor)+rnd.nextInt(2)));
+        //newT.setColor(Color.);
         return newT;
     }
 
@@ -239,6 +241,26 @@ public class PolyartMgr {
         paint.setColor(curColor);
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.FILL);
+    }
+
+    public static void clearAll(){
+        curBrushSize = 50;
+        curColor = Color.RED;
+        triangles.clear();
+        triangleCreationInProgress =false;
+        triCount = 0;
+    }
+
+    public static void selectBrushSize(int size){
+        curBrushSize = size;
+    }
+
+    public static void selectColor(int color){
+        curColor = color;
+    }
+
+    public static void done(){
+        //saving
     }
 
     private boolean isWithinScreenDim(float x, float y){

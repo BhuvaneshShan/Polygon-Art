@@ -21,7 +21,7 @@ import bhuva.polygonart.Polyart.PolyartMgr;
 public class DrawingView extends View {
 
     private int initialColor = Color.LTGRAY;
-    private PolyartMgr polyartMgr;
+    private static PolyartMgr polyartMgr;
 
     public DrawingView(Context context, AttributeSet attrs) {
         super(context, attrs);
