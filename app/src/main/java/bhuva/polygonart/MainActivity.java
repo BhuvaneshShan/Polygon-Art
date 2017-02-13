@@ -1,5 +1,6 @@
 package bhuva.polygonart;
 
+import android.app.DialogFragment;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -13,7 +14,7 @@ import android.view.MenuItem;
 
 import bhuva.polygonart.Polyart.PolyartMgr;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BrushSizeSelectorDialog.BrushSelectionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +52,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickBrushSize(View view) {
-        int newSize = 100;
-        PolyartMgr.selectBrushSize(newSize);
+        BrushSizeSelectorDialog dialog = new BrushSizeSelectorDialog();
+        dialog.show(getFragmentManager(), "Brush Size Selector");
+        //int newSize = 100;
+        //PolyartMgr.selectBrushSize(newSize);
     }
 
     public void onClickColorSelector(View view) {
@@ -61,5 +64,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickDone(View view) {
+    }
+
+    @Override
+    public void onSetBrushSize(DialogFragment dialog){
+        Utils.Log("onSetBrushSize called!",3);
+        PolyartMgr.selectBrushSize(100);
+    }
+
+    @Override
+    public void onCancel(DialogFragment dialog){
+        Utils.Log("onCancel called!",3);
     }
 }

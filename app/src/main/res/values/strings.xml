@@ -4,4 +4,8 @@
     <string name="clear">Clear</string>
     <string name="save">Save</string>
     <string name="tool">Tool</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">Okay</string>
+    <string name="select_brush_size">Select Brush Size</string>
+    <string name="title_activity_brush_size_selection">BrushSizeSelectionActivity</string>
 </resources>
