@@ -263,6 +263,14 @@ public class PolyartMgr {
         //saving
     }
 
+    public static int getCurBrushSize(){
+        return curBrushSize;
+    }
+
+    public static int getCurColor(){
+        return curColor;
+    }
+
     private boolean isWithinScreenDim(float x, float y){
         if (x >=0 && x<=screenDim.x && y>=0 && y<=screenDim.y)
             return true;

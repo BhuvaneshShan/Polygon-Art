@@ -10,9 +10,11 @@ package="bhuva.polygonart">
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
     </activity>
-    <application>
-        <activity android:name="bhuva.polygonart.BrushSizeSelectionActivity" android:label="@string/title_activity_brush_size_selection"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-    </application>
+
+    <activity android:name="bhuva.polygonart.BrushSizeSelectionActivity"
+        android:label="@string/title_activity_brush_size_selection"
+            android:theme="@android:style/Theme.Holo.Dialog">
+    </activity>
+
 </application>
 </manifest>

@@ -27,7 +27,7 @@ public class BrushSizeSelectorDialog extends DialogFragment {
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        builder.setView(inflater.inflate(R.layout.brush_size_selector, null))
+        builder.setView(inflater.inflate(R.layout.activity_brush_size_selection, null))
             .setMessage(R.string.select_brush_size)
             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
