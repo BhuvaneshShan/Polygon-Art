@@ -32,6 +32,7 @@ public class PolyartMgr {
     private static ArrayList<Triangle> triangles;
     private static int triCount = 0;
     private static boolean triangleCreationInProgress = false;
+    private static boolean isMotionEventDownActive = false;
 
     private Paint paint;
     private static int curColor = Color.MAGENTA;
@@ -60,30 +61,19 @@ public class PolyartMgr {
         setupPaint();
         DrawMode = Mode.CreationMode;
         selCircles = new Vector<>();
-        //gestureDetector = new GestureDetector(context, new GestureListener());
     }
-
-    /*private class GestureListener extends GestureDetector.SimpleOnGestureListener {
-        // event when double tap occurs
-        @Override
-        public boolean onDoubleTap(MotionEvent e) {
-            float x = e.getX();
-            float y = e.getY();
-
-            Log.d(TAG, "Double Tapped at: (" + x + "," + y + ")");
-
-            return true;
-        }
-    }*/
 
     public void onTouchEvent(MotionEvent event){
         float curX = event.getX();
         float curY = event.getY();
         if( isWithinScreenDim(curX,curY)) {
             switch (event.getAction()) {
+
                 case MotionEvent.ACTION_OUTSIDE:
                     break;
+
                 case MotionEvent.ACTION_DOWN:
+                    isMotionEventDownActive = true;
                     if (DrawMode == Mode.CreationMode) {
                         //debugSelCircles(curX, curY);
                         Triangle t = createNewTriangle(curX, curY);
@@ -92,19 +82,23 @@ public class PolyartMgr {
                         //editing of triangle
                         Log.d(TAG, "In Editing mode");
                     }
+                    isMotionEventDownActive = false;
                     break;
+
                 case MotionEvent.ACTION_MOVE:
-                    if (DrawMode == Mode.CreationMode) {
+                    if (DrawMode == Mode.CreationMode && !isMotionEventDownActive) {
                         if (!triangleCreationInProgress) {
-                            PointF touchPoint = new PointF(curX, curY);
-                            Triangle temp = triangles.get(triCount - 1);
-                            float dist = temp.distTo(touchPoint);
-                            if (dist >= 1.4 * curBrushSize) {
-                                triangleCreationInProgress = true;
-                                //Log.d(TAG, "brush size:" + curBrushSize + " ; dist: " + dist);
-                                Triangle t = createNewTriangleWith(triangles.get(triCount - 1), touchPoint);
-                                addTriangle(t);
-                                triangleCreationInProgress = false;
+                            if(triangles.size()>0) {
+                                Triangle temp = triangles.get(triCount - 1);
+                                PointF touchPoint = new PointF(curX, curY);
+                                float dist = temp.distTo(touchPoint);
+                                if (dist > 1.5 * curBrushSize && dist < 5 * curBrushSize) {
+                                    triangleCreationInProgress = true;
+                                    //Log.d(TAG, "brush size:" + curBrushSize + " ; dist: " + dist);
+                                    Triangle t = createNewTriangleWith(triangles.get(triCount - 1), touchPoint);
+                                    addTriangle(t);
+                                    triangleCreationInProgress = false;
+                                }
                             }
                         } else {
                             Log.d(TAG, "Triangle creation in progress");
@@ -113,6 +107,9 @@ public class PolyartMgr {
                         //editing of triangle
                         Log.d(TAG, "In Editing mode");
                     }
+                    break;
+
+                case MotionEvent.ACTION_UP:
                     break;
             }
         }

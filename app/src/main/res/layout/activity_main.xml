@@ -1,72 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:orientation="vertical"
     android:layout_alignParentBottom="true"
     android:layout_alignParentStart="true"
-    android:layout_marginBottom="36dp">
-
+    android:orientation="vertical"
+    tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp">
 
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="New"
-            android:id="@+id/buttonNew"
-            android:textColor="#e51c1c"
-            android:background="#ffffff"
-            android:clickable="true"
-            android:layout_gravity="left"
-            android:onClick="onClickCreateNewFile"/>
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonNew"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_new_create"
+                android:clickable="true"
+                android:onClick="onClickCreateNewFile" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Brush Size"
-            android:id="@+id/buttonBrushSize"
-            android:textColor="#e51c1c"
-            android:background="#ffffff"
-            android:clickable="true"
-            android:onClick="onClickBrushSize"/>
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonBrushSize"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_brush_size"
+                android:clickable="true"
+                android:onClick="onClickBrushSize" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Color"
-            android:id="@+id/buttonColor"
-            android:textColor="#e51c1c"
-            android:background="#ffffff"
-            android:clickable="true"
-            android:onClick="onClickColorSelector"/>
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonColor"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_choose_color"
+                android:clickable="true"
+                android:onClick="onClickColorSelector" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Done"
-            android:id="@+id/buttonDone"
-            android:textColor="#e51c1c"
-            android:background="#ffffff"
-            android:clickable="true"
-            android:layout_gravity="right"
-            android:onClick="onClickDone"/>
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonDone"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_done_save"
+                android:clickable="true"
+                android:onClick="onClickDone" />
+        </LinearLayout>
 
     </LinearLayout>
 
     <bhuva.polygonart.DrawingView
         android:id="@+id/simpleDrawingView1"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        />
+        android:layout_height="match_parent" />
 
 </LinearLayout>
 
