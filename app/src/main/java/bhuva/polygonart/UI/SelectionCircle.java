@@ -14,7 +14,7 @@ public class SelectionCircle {
     float radius;
     int color = Color.BLUE;
     final String TAG = "SelectionCircle";
-    final int defaultRadius = 20;
+    final int defaultRadius = 10;
     Paint fillPaint;
     Paint strokePaint;
     public SelectionCircle(float x, float y, float rad){
@@ -35,6 +35,19 @@ public class SelectionCircle {
         radius = defaultRadius;
         setupPaint();
     }
+    public SelectionCircle(PointF p){
+        centre.x = p.x;
+        centre.y = p.y;
+        radius = defaultRadius;
+        setupPaint();
+    }
+    public SelectionCircle(PointF p, int tcolor){
+        centre.x = p.x;
+        centre.y = p.y;
+        radius = defaultRadius;
+        color = tcolor;
+        setupPaint();
+    }
     public void translate(float x, float y){
         centre.x += x;
         centre.y += y;
@@ -45,7 +58,7 @@ public class SelectionCircle {
     }
     private void setupPaint(){
         fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        fillPaint.setColor(Color.BLUE);
+        fillPaint.setColor(color);
         fillPaint.setStrokeWidth(1);
         fillPaint.setStyle(Paint.Style.FILL);
         strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);

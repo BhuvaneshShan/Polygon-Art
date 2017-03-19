@@ -5,6 +5,7 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.util.Log;
 
+import java.util.Random;
 import java.util.Vector;
 
 import bhuva.polygonart.Graphics.Generic;
@@ -13,39 +14,35 @@ import bhuva.polygonart.Graphics.Vec2D;
 /**
  * Created by bhuva on 5/8/2016.
  */
-public class Triangle {
-    private PointF vertices[];
-    private PointF circumcenter;
-
-    private int color = Color.MAGENTA;
-
+public class Triangle extends Polygon{
     private String TAG = "TRIANGLE";
 
     public static Triangle randomUnitTriangle(){
+        /*
         PointF a = new PointF(0, 1);
         PointF b = new PointF(-0.75f, -0.75f);
         PointF c = new PointF(0.75f, -0.75f);
         return new Triangle(a,b,c);
+        */
+        Triangle t = new Triangle();
+        t.vertices = t.getVerticesOnUnitCircleRotated(3, (float)((new Random().nextFloat())*(Math.PI/2.0f)));
+        return t;
     }
 
     public Triangle(){
-        vertices = new PointF[3];
-        for(int i=0;i<3; i++){
-            vertices[i] = new PointF(0,0);
-        }
-        circumcenter = new PointF(0,0);
+        super(3);
     }
-
+    /*
     public Triangle(PointF a, PointF b, PointF c){
-        vertices = new PointF[3];
-        vertices[0] = a;
-        vertices[1] = b;
-        vertices[2] = c;
-        circumcenter = new PointF(0,0);
+        super(3);
+        vertices.set(0, a);
+        vertices.set(1, b);
+        vertices.set(2, c);
         computeCircumcenter();
     }
 
     public Triangle(PointF a,PointF b, PointF c, PointF cc){
+        super(3);
         vertices = new PointF[3];
         vertices[0] = a;
         vertices[1] = b;
@@ -54,18 +51,20 @@ public class Triangle {
         circumcenter.x = cc.x;
         circumcenter.y = cc.y;
     }
+    */
 
     public String string(){
         String s = "";
         for(int i=0; i<3; i++){
-            s += "v"+i+": "+vertices[i].x+", "+vertices[i].y+"; ";
+            s += "v"+i+": "+vertices.get(i).x+", "+vertices.get(i).y+"; ";
         }
-        s+= "cc: "+circumcenter.x+", "+circumcenter.y;
+        s+= "cc: "+ccenter.x+", "+ccenter.y;
         return s;
     }
     public void setColor(int col){
         color = col;
     }
+    /*
     public void translate(float x, float y){
         for(int i=0;i<3; i++){
             vertices[i].x += x;
@@ -115,40 +114,25 @@ public class Triangle {
                 (vertices[0].x - vertices[2].x)*(p.y - vertices[2].y))/denom;
         float c = 1 - a - b;
         return 0 <= a && a <= 1 && 0 <= b && b <= 1 && 0 <= c && c <= 1;
-        /*Vec2D ap = new Vec2D(vertices[0], p);
-        Vec2D ab = new Vec2D(vertices[0], vertices[1]);
-        Vec2D bp = new Vec2D(vertices[1], p);
-        Vec2D bc = new Vec2D(vertices[1], vertices[2]);
-        Vec2D cp = new Vec2D(vertices[2], p);
-        Vec2D ca = new Vec2D(vertices[2], vertices[0]);
-        boolean u = Vec2D.dotProduct(ap, ab) > 0.0f;
-        boolean v = Vec2D.dotProduct(bp, bc) > 0.0f;
-        boolean w = Vec2D.dotProduct(cp, ca) > 0.0f;
-        if( u==v && v==w)
-            return true;
-        else
-            return false;
-        */
-    }
 
-    public float distTo(PointF p){
-        return (float)Math.sqrt(Math.pow(circumcenter.x - p.x, 2) + Math.pow(circumcenter.y - p.y, 2));
     }
+    */
+
     public PointF getVertA(){
-        return vertices[0];
+        return vertices.get(0);
     }
     public PointF getVertB(){
-        return vertices[1];
+        return vertices.get(1);
     }
     public PointF getVertC(){
-        return vertices[2];
+        return vertices.get(2);
     }
-    public PointF getVert(int index){ return vertices[index];}
-    public PointF getCenter(){ return circumcenter; }
+
     public int getColor(){
         return color;
     }
 
+    /*
     private void computeCircumcenter(){
         float slopeAB = (vertices[1].y-vertices[0].y)/(vertices[1].x-vertices[0].x);
         float slopeAC = (vertices[2].y-vertices[0].y)/(vertices[2].x-vertices[0].x);
@@ -188,6 +172,7 @@ public class Triangle {
         circumcenter.x = x;
         circumcenter.y = y;
     }
+    */
     /*private void computeCentroid(){
         float x = 0, y = 0;
         for(int i=0; i<3; i++){

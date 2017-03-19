@@ -12,6 +12,10 @@ public class Vec2D {
         x = 0;
         y = 0;
     }
+    public Vec2D(Vec2D vec){
+        x = vec.x;
+        y = vec.y;
+    }
     public Vec2D(float tx, float ty){
         x = tx;
         y = ty;
@@ -37,8 +41,9 @@ public class Vec2D {
     }
 
     public void norm(){
-        x = (float) (x / this.magnitude());
-        y = (float)(y / this.magnitude());
+        float mag = (float) this.magnitude();
+        x = x / mag;
+        y = y / mag;
         //if(x<0.000001) x = 0;
         //if(y<0.000001) y = 0;
     }

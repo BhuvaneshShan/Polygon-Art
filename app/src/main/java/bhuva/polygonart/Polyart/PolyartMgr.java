@@ -16,6 +16,7 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
@@ -29,7 +30,7 @@ import bhuva.polygonart.UI.SelectionCircle;
  */
 public class PolyartMgr {
 
-    private static ArrayList<Triangle> triangles;
+    private static ArrayList<Polygon> triangles;
     private static int triCount = 0;
     private static boolean triangleCreationInProgress = false;
     private static boolean isMotionEventDownActive = false;
@@ -52,12 +53,12 @@ public class PolyartMgr {
     private String TAG = "MGR";
 
     public PolyartMgr(Context context){
-        triangles = new ArrayList<Triangle>();
+        triangles = new ArrayList<Polygon>();
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         display.getSize(screenDim);
         Log.d(TAG,"Dim:"+screenDim.x+", "+screenDim.y);
-        nearestNeighborMgr = new NearestNeighbor(screenDim);
+        //nearestNeighborMgr = new NearestNeighbor(screenDim);
         setupPaint();
         DrawMode = Mode.CreationMode;
         selCircles = new Vector<>();
@@ -89,13 +90,13 @@ public class PolyartMgr {
                     if (DrawMode == Mode.CreationMode && !isMotionEventDownActive) {
                         if (!triangleCreationInProgress) {
                             if(triangles.size()>0) {
-                                Triangle temp = triangles.get(triCount - 1);
+                                Polygon temp = triangles.get(triCount - 1);
                                 PointF touchPoint = new PointF(curX, curY);
-                                float dist = temp.distTo(touchPoint);
-                                if (dist > 1.5 * curBrushSize && dist < 5 * curBrushSize) {
+                                float dist = temp.distToCCenter(touchPoint);
+                                if (dist > 1.5 * curBrushSize && dist < 20 * curBrushSize) {
                                     triangleCreationInProgress = true;
                                     //Log.d(TAG, "brush size:" + curBrushSize + " ; dist: " + dist);
-                                    Triangle t = createNewTriangleWith(triangles.get(triCount - 1), touchPoint);
+                                    Polygon t = createNewTriangleWith(triangles.get(triCount - 1), touchPoint);
                                     addTriangle(t);
                                     triangleCreationInProgress = false;
                                 }
@@ -117,15 +118,10 @@ public class PolyartMgr {
 
     public void drawOnCanvas(Canvas canvas){
         Path path = new Path();
-        for (Triangle t : triangles) {
-            PointF a = t.getVertA();
-            PointF b = t.getVertB();
-            PointF c = t.getVertC();
+        for (Polygon t : triangles) {
 
             path.reset();
-            path.moveTo(a.x, a.y);
-            path.lineTo(b.x, b.y);
-            path.lineTo(c.x, c.y);
+            path = t.draw(path);
             path.close();
 
             paint.setColor(t.getColor());
@@ -137,20 +133,19 @@ public class PolyartMgr {
         }
     }
 
-    public void addTriangle(Triangle t){
-        if(isWithinScreenDim(t.getVertA()) && isWithinScreenDim(t.getVertB()) && isWithinScreenDim(t.getVertC())) {
+    public void addTriangle(Polygon t){
             triangles.add(t);
             triCount++;
-            nearestNeighborMgr.addPoint(t.getVertA());
-            nearestNeighborMgr.addPoint(t.getVertB());
-            nearestNeighborMgr.addPoint(t.getVertC());
-        }
+        //    nearestNeighborMgr.addPoint(t.getVertA());
+        //    nearestNeighborMgr.addPoint(t.getVertB());
+        //    nearestNeighborMgr.addPoint(t.getVertC());
+        //}
     }
 
     private boolean isInsideATriangle(float x, float y){
         PointF p = new PointF(x,y);
         for(int i=triangles.size()-1; i>=0; --i){
-            Triangle t = triangles.get(i);
+            Polygon t = triangles.get(i);
             if(t.contains(p)){
                 return true;
             }
@@ -160,46 +155,18 @@ public class PolyartMgr {
 
     private Triangle createNewTriangle(float x, float y){
         Triangle t = Triangle.randomUnitTriangle();
+        t.translate(new PointF(x, y));
         t.scale(curBrushSize);
-        t.translate(x, y);
-        //t.setColor(Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)));
-        t.setColor(Color.argb(255, Color.red(curColor) + rnd.nextInt(20), Color.green(curColor) + rnd.nextInt(20), Color.blue(curColor) + rnd.nextInt(20)));
+        t.setColor(curColor);
+
+        //selCircles.add( new SelectionCircle(t.getCCenter()));
+
         return t;
     }
 
-    private Triangle createNewTriangleWith(Triangle t, PointF touchPoint){
-        /**
-        double distFirstNear = Generic.relDist(t.getVert(0), touchPoint);
-        double distSecNear = distFirstNear;
-        PointF firstNear = t.getVert(0);
-        PointF secNear = firstNear;
-        for(int i=1; i<VERTEX_COUNT; i++){
-            double tempDist = Generic.relDist(t.getVert(i), touchPoint);
-            if(tempDist < distFirstNear){
-                distSecNear = distFirstNear;
-                secNear = firstNear;
-                distFirstNear = tempDist;
-                firstNear = t.getVert(i);
-            }else if(tempDist < distSecNear){
-                distSecNear = tempDist;
-                secNear = t.getVert(i);
-            }
-        }
-        int farthestVertexIndex = 0;
-        float farthestDist = 0;
-        for(int i=0; i<3; i++){
-            float dist = (float)Generic.relDist(t.getVert(i), touchPoint);
-            if (dist > farthestDist){
-                farthestDist = dist;
-                farthestVertexIndex = i;
-            }
-        }
-        Log.d(TAG, "farthest vert: "+farthestVertexIndex + "; far dist:"+farthestDist);
-        PointF near1 = t.getVert((farthestVertexIndex+1)%3);
-        PointF near2 = t.getVert((farthestVertexIndex+2)%3);
-        */
-
-        Vector<PointF> verts = t.getVerticesOfNearestSide(touchPoint); //verts has 0,1 as nearest vertices in terms of side facing and 2 index as the farthest vertex
+    private Polygon createNewTriangleWith(Polygon t, PointF touchPoint){
+        /*
+        List<PointF> verts = t.getVerticesOfNearestSide(touchPoint); //verts has 0,1 as nearest vertices in terms of side facing and 2 index as the farthest vertex
         Log.d(TAG, "near1:"+verts.get(0).toString()+", near2:"+verts.get(1).toString());
 
         PointF mid = new PointF((verts.get(0).x+verts.get(1).x)/2.0f, (verts.get(0).y+verts.get(1).y)/2.0f);
@@ -212,25 +179,23 @@ public class PolyartMgr {
         Log.d(TAG, "sinval:" + sinval);
         float len = curBrushSize * sinval;
         Log.d(TAG, "len: " + len);
-        /*baseSide.norm();
-        Log.d(TAG, "after norm: " + baseSide.string());
-        baseSide.rotate90();
-        Log.d(TAG, "after rotate: " + baseSide.string());
-        PointF newVert = baseSide.translatePointBy(mid, len+curBrushSize);
-        Log.d(TAG,"new vert: "+newVert.x+", "+newVert.y);
-        if( Generic.dist(verts.get(2), newVert) < len+curBrushSize ){
-            baseSide.invert();
-            Log.d(TAG, "after invert: " + baseSide.string());
-            newVert = baseSide.translatePointBy(mid, len + curBrushSize);
-        }*/
+
         Vec2D dir = new Vec2D(t.getCenter(), mid);
         dir.norm();
         PointF newVert = dir.translatePointBy(mid, len+curBrushSize);
         Log.d(TAG,"final new vert: "+newVert.x+", "+newVert.y);
         Triangle newT = new Triangle(verts.get(0), verts.get(1), newVert);
         newT.setColor(Color.argb(255, Color.red(curColor) + rnd.nextInt(2), Color.green(curColor)+rnd.nextInt(2), Color.blue(curColor)+rnd.nextInt(2)));
-        //newT.setColor(Color.);
         return newT;
+        */
+        List<PointF> axisPoints = t.getVerticesOfNearestSide(touchPoint);
+        Polygon ne = Polygon.generateNeighbor(t, axisPoints);
+
+        //selCircles.add(new SelectionCircle(axisPoints.get(0),Color.RED));
+        //selCircles.add(new SelectionCircle(axisPoints.get(1), Color.BLACK));
+        //selCircles.add(new SelectionCircle(ne.getCCenter()));
+
+        return ne;
     }
 
     private void setupPaint(){
