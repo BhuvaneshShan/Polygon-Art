@@ -63,11 +63,9 @@ public class Triangle {
         s+= "cc: "+circumcenter.x+", "+circumcenter.y;
         return s;
     }
-
     public void setColor(int col){
         color = col;
     }
-
     public void translate(float x, float y){
         for(int i=0;i<3; i++){
             vertices[i].x += x;
