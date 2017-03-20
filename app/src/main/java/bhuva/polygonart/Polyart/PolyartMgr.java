@@ -30,38 +30,36 @@ import bhuva.polygonart.UI.SelectionCircle;
  */
 public class PolyartMgr {
 
-    private static ArrayList<Polygon> triangles;
-    private static int triCount = 0;
-    private static boolean triangleCreationInProgress = false;
-    private static boolean isMotionEventDownActive = false;
+    private static List<Polygon> polygons;
+
+    private static boolean polygonCreationInProgress = false;
+    private static boolean isMotionDownEventActive = false;
 
     private Paint paint;
+
     private static int curColor = Color.MAGENTA;
     private static int curBrushSize = 50;
+    private static int curPolygonSides = 3;
 
-    private NearestNeighbor nearestNeighborMgr;
-    private Vector<SelectionCircle> selCircles;
+    private static List<SelectionCircle> selCircles;
 
     private Random rnd = new Random();
-    private int VERTEX_COUNT = 3;
     private Point screenDim = new Point();
-    private GestureDetector gestureDetector;
 
-    private enum Mode{CreationMode, EditingMode};
-    private Mode DrawMode;
+    public enum Mode{CreationMode, EditingMode, RemoveMode};
+    private static Mode curMode;
 
-    private String TAG = "MGR";
+    private String TAG = "POLYART_MGR";
 
     public PolyartMgr(Context context){
-        triangles = new ArrayList<Polygon>();
+        polygons = new ArrayList<Polygon>();
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         display.getSize(screenDim);
         Log.d(TAG,"Dim:"+screenDim.x+", "+screenDim.y);
-        //nearestNeighborMgr = new NearestNeighbor(screenDim);
         setupPaint();
-        DrawMode = Mode.CreationMode;
-        selCircles = new Vector<>();
+        curMode = Mode.CreationMode;
+        selCircles = new ArrayList<>();
     }
 
     public void onTouchEvent(MotionEvent event){
@@ -74,37 +72,24 @@ public class PolyartMgr {
                     break;
 
                 case MotionEvent.ACTION_DOWN:
-                    isMotionEventDownActive = true;
-                    if (DrawMode == Mode.CreationMode) {
-                        //debugSelCircles(curX, curY);
-                        Triangle t = createNewTriangle(curX, curY);
-                        addTriangle(t);
-                    } else if (DrawMode == Mode.EditingMode) {
+                    isMotionDownEventActive = true;
+                    if (curMode == Mode.CreationMode) {
+                        createNew(curX, curY, false);
+                    } else if (curMode == Mode.EditingMode) {
                         //editing of triangle
                         Log.d(TAG, "In Editing mode");
+                    } else if(curMode == Mode.RemoveMode){
+                        removePolygonAt(curX, curY);
                     }
-                    isMotionEventDownActive = false;
+                    isMotionDownEventActive = false;
                     break;
 
                 case MotionEvent.ACTION_MOVE:
-                    if (DrawMode == Mode.CreationMode && !isMotionEventDownActive) {
-                        if (!triangleCreationInProgress) {
-                            if(triangles.size()>0) {
-                                Polygon temp = triangles.get(triCount - 1);
-                                PointF touchPoint = new PointF(curX, curY);
-                                float dist = temp.distToCCenter(touchPoint);
-                                if (dist > 1.5 * curBrushSize && dist < 20 * curBrushSize) {
-                                    triangleCreationInProgress = true;
-                                    //Log.d(TAG, "brush size:" + curBrushSize + " ; dist: " + dist);
-                                    Polygon t = createNewTriangleWith(triangles.get(triCount - 1), touchPoint);
-                                    addTriangle(t);
-                                    triangleCreationInProgress = false;
-                                }
-                            }
-                        } else {
-                            Log.d(TAG, "Triangle creation in progress");
+                    if (curMode == Mode.CreationMode && !isMotionDownEventActive) {
+                        if (!polygonCreationInProgress) {
+                            createNew(curX, curY, true);
                         }
-                    } else if (DrawMode == Mode.EditingMode) {
+                    } else if (curMode == Mode.EditingMode) {
                         //editing of triangle
                         Log.d(TAG, "In Editing mode");
                     }
@@ -118,14 +103,16 @@ public class PolyartMgr {
 
     public void drawOnCanvas(Canvas canvas){
         Path path = new Path();
-        for (Polygon t : triangles) {
+        for (Polygon t : polygons) {
 
-            path.reset();
-            path = t.draw(path);
-            path.close();
+            if(t.isVisible()) {
+                path.reset();
+                path = t.draw(path);
+                path.close();
 
-            paint.setColor(t.getColor());
-            canvas.drawPath(path, paint);
+                paint.setColor(t.getColor());
+                canvas.drawPath(path, paint);
+            }
         }
 
         for(SelectionCircle c : selCircles){
@@ -133,19 +120,46 @@ public class PolyartMgr {
         }
     }
 
-    public void addTriangle(Polygon t){
-            triangles.add(t);
-            triCount++;
-        //    nearestNeighborMgr.addPoint(t.getVertA());
-        //    nearestNeighborMgr.addPoint(t.getVertB());
-        //    nearestNeighborMgr.addPoint(t.getVertC());
-        //}
+    public void createNew(float x, float y, boolean appending){
+        PointF touchPoint = new PointF(x, y);
+        if(!appending) {
+            Polygon polygon = new Polygon(curPolygonSides, touchPoint, curBrushSize, curColor, true);
+            polygons.add(polygon);
+        }else{
+            if(polygons.size()>0) {
+                Polygon neighbor = polygons.get(polygons.size() - 1);
+                float dist = neighbor.distToCCenter(touchPoint);
+                if (dist > 1.5 * curBrushSize && dist < 20 * curBrushSize) {
+                    polygonCreationInProgress = true;
+                    Polygon generated = generateNeighbor(polygons.get(polygons.size() - 1), touchPoint);
+                    polygons.add(generated);
+                    polygonCreationInProgress = false;
+                }
+            }
+        }
+    }
+
+    public void removePolygonAt(float x, float y){
+        PointF touchPoint = new PointF(x, y);
+        for(int i=polygons.size()-1; i>=0; i--){
+            Polygon p = polygons.get(i);
+            if( p.contains(touchPoint) && p.isVisible()){
+                p.setVisible(false);
+                break;
+            }
+        }
+    }
+
+    private Polygon generateNeighbor(Polygon t, PointF touchPoint){
+        List<PointF> axisPoints = t.getVerticesOfNearestSide(touchPoint);
+        Polygon polygon = Polygon.generateNeighbor(t, axisPoints);
+        return polygon;
     }
 
     private boolean isInsideATriangle(float x, float y){
         PointF p = new PointF(x,y);
-        for(int i=triangles.size()-1; i>=0; --i){
-            Polygon t = triangles.get(i);
+        for(int i=polygons.size()-1; i>=0; --i){
+            Polygon t = polygons.get(i);
             if(t.contains(p)){
                 return true;
             }
@@ -208,21 +222,32 @@ public class PolyartMgr {
     public static void clearAll(){
         curBrushSize = 50;
         curColor = Color.RED;
-        triangles.clear();
-        triangleCreationInProgress =false;
-        triCount = 0;
+        curPolygonSides = 3;
+        polygons.clear();
+        polygonCreationInProgress =false;
+        selCircles.clear();
+        isMotionDownEventActive = false;
     }
 
-    public static void selectBrushSize(int size){
+    public static void setBrushSize(int size){
         curBrushSize = size;
     }
 
-    public static void selectColor(int color){
+    public static void setColor(int color){
         curColor = color;
     }
 
     public static void done(){
         //saving
+        curPolygonSides++;
+    }
+
+    public static void setMode(Mode mode){
+        curMode = mode;
+    }
+
+    public static Mode getMode(){
+        return curMode;
     }
 
     public static int getCurBrushSize(){
@@ -243,14 +268,5 @@ public class PolyartMgr {
         if (p.x >=0 && p.x<=screenDim.x && p.y>=0 && p.y<=screenDim.y)
             return true;
         return false;
-    }
-
-    private void debugSelCircles(float x, float y){
-        PointF p = new PointF(x,y);
-        Vector<Point> v = nearestNeighborMgr.getNearestNeighbor(p,3,curBrushSize);
-        selCircles.clear();
-        for(Point nn: v){
-            selCircles.add(new SelectionCircle(nn));
-        }
     }
 }

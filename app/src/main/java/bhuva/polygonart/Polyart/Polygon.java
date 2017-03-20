@@ -6,9 +6,11 @@ import android.graphics.PointF;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import bhuva.polygonart.Graphics.Generic;
 import bhuva.polygonart.Graphics.Vec2D;
+import bhuva.polygonart.Utils;
 
 /**
  * Created by bhuva on 3/18/2017.
@@ -20,9 +22,10 @@ public class Polygon {
     protected PointF ccenter = new PointF(0.0f, 0.0f);
     protected int sides;
 
-    protected int color = Color.RED;
+    protected int color = PolyartMgr.getCurColor();
 
     protected float brushSize = 1; //brush size used to create this
+    protected boolean visible = true;
 
     public Polygon(int sides_count){
         if(sides_count > 2) {
@@ -39,6 +42,39 @@ public class Polygon {
             sides = sides_count;
             ccenter = new PointF(0.0f, 0.0f);
             vertices = getVerticesOnUnitCircle(sides);
+            scale(size);
+            translate(position);
+        }else{
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public Polygon(int sides_count, PointF position, int size, boolean randomized){
+        if(sides_count > 2) {
+            sides = sides_count;
+            ccenter = new PointF(0.0f, 0.0f);
+            if(randomized){
+                vertices = getVerticesOnUnitCircleRotated(sides, (float)((new Random().nextFloat())*(Math.PI/2.0f)));
+            }else{
+                vertices = getVerticesOnUnitCircle(sides);
+            }
+            scale(size);
+            translate(position);
+        }else{
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public Polygon(int sides_count, PointF position, int size, int colorValue, boolean randomized){
+        if(sides_count > 2) {
+            sides = sides_count;
+            ccenter = new PointF(0.0f, 0.0f);
+            if(randomized){
+                vertices = getVerticesOnUnitCircleRotated(sides, (float)((new Random().nextFloat())*(Math.PI/2.0f)));
+            }else{
+                vertices = getVerticesOnUnitCircle(sides);
+            }
+            color = colorValue;
             scale(size);
             translate(position);
         }else{
@@ -162,6 +198,7 @@ public class Polygon {
         Polygon generated = new Polygon(given);
         generated.setCcenter(cc);
         generated.setVertices(newVerts);
+        generated.setColor(Utils.getAVariation(generated.getColor()));
         return generated;
     }
 
@@ -189,6 +226,14 @@ public class Polygon {
         color = col;
     }
 
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
     public void translate(PointF translationFactor){
         ccenter.x += translationFactor.x;
         ccenter.y += translationFactor.y;
@@ -214,8 +259,6 @@ public class Polygon {
         verts.add(new PointF()); verts.add(new PointF());
         float distMin = Float.MAX_VALUE;
         for(int i=0; i<sides; i++){
-            //float distA = (float) Generic.relDist(p,vertices.get(i));
-            //float distB = (float) Generic.relDist(p, vertices.get((i+1)%sides));
             PointF mid = new PointF((vertices.get(i).x+vertices.get((i+1)%sides).x)/2.0f, (vertices.get(i).y+vertices.get((i+1)%sides).y)/2.0f);
             float dist = (float) Generic.relDist(mid, p);
             if(dist < distMin){

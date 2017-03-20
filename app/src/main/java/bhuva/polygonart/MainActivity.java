@@ -3,12 +3,16 @@ package bhuva.polygonart;
 import android.app.DialogFragment;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.Toast;
 
 import com.jrummyapps.android.colorpicker.ColorPickerDialog;
 import com.jrummyapps.android.colorpicker.ColorPickerDialogListener;
@@ -76,6 +80,35 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         //PolyartMgr.selectBrushSize(newSize);
     }
 
+    public void onClickRemovePoly(View view){
+        Button removeButton = (Button) findViewById(R.id.buttonRemove);
+        if(PolyartMgr.getMode() != PolyartMgr.Mode.RemoveMode) {
+            PolyartMgr.setMode(PolyartMgr.Mode.RemoveMode);
+            removeButton.setBackgroundResource(R.drawable.ic_remove_poly_clicked);
+            Toast.makeText(this, "In Remove mode. Touch polygons to delete! ", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            PolyartMgr.setMode(PolyartMgr.Mode.CreationMode);
+            removeButton.setBackgroundResource(R.drawable.ic_remove_poly);
+        }
+    }
+
+    public void onClickDone(View view) {
+        PolyartMgr.done();
+    }
+
+    @Override
+    public void onSetBrushSize(int size){
+        Utils.Log("onSetBrushSize called!",3);
+        PolyartMgr.setBrushSize(size);
+    }
+
+    @Override
+    public void onCancel(DialogFragment dialog){
+        Utils.Log("onCancel called!",3);
+    }
+
+    //Color Pallette
     public void onClickColorSelector(View view) {
         int oldColor = PolyartMgr.getCurColor();
         ColorPickerDialog.newBuilder()
@@ -86,25 +119,11 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
                 .show(this);
     }
 
-    public void onClickDone(View view) {
-    }
-
-    @Override
-    public void onSetBrushSize(int size){
-        Utils.Log("onSetBrushSize called!",3);
-        PolyartMgr.selectBrushSize(size);
-    }
-
-    @Override
-    public void onCancel(DialogFragment dialog){
-        Utils.Log("onCancel called!",3);
-    }
-
     @Override
     public void onColorSelected(int dialogId, int color) {
         enableFullScreenMode();
         Utils.Log("onColorSelected called!",3);
-        PolyartMgr.selectColor(color);
+        PolyartMgr.setColor(color);
     }
 
     @Override

@@ -74,6 +74,23 @@
             android:orientation="horizontal">
 
             <Button
+                android:id="@+id/buttonRemove"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_remove_poly"
+                android:clickable="true"
+                android:onClick="onClickRemovePoly" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
                 android:id="@+id/buttonDone"
                 style="?android:attr/buttonStyleSmall"
                 android:layout_width="wrap_content"

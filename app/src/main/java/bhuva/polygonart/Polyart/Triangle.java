@@ -61,9 +61,7 @@ public class Triangle extends Polygon{
         s+= "cc: "+ccenter.x+", "+ccenter.y;
         return s;
     }
-    public void setColor(int col){
-        color = col;
-    }
+
     /*
     public void translate(float x, float y){
         for(int i=0;i<3; i++){
@@ -126,10 +124,6 @@ public class Triangle extends Polygon{
     }
     public PointF getVertC(){
         return vertices.get(2);
-    }
-
-    public int getColor(){
-        return color;
     }
 
     /*
