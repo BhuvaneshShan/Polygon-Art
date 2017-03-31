@@ -6,6 +6,8 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
 
+import bhuva.polygonart.Graphics.Generic;
+
 /**
  * Created by bhuva on 6/5/2016.
  */
@@ -56,6 +58,11 @@ public class SelectionCircle {
         canvas.drawCircle(centre.x, centre.y, radius, fillPaint);
         canvas.drawCircle(centre.x, centre.y, radius, strokePaint);
     }
+
+    public boolean isWithinRadius(PointF point, float radius){
+         return (Generic.relDist(centre, point) <= radius*radius);
+    }
+
     private void setupPaint(){
         fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         fillPaint.setColor(color);

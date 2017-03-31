@@ -273,8 +273,9 @@ public class Polygon {
     public boolean contains(PointF point){
         boolean inside = false;
         //first fast check if inside circum circle
-        inside = Generic.relDist(point, ccenter) < Math.pow(brushSize, 2);
+        inside = Generic.relDist(point, ccenter) < Math.pow( Generic.dist(ccenter, vertices.get(0)), 2);
         if(!inside) {
+            Utils.Log("false circle check",5);
             return false;
         }else{
             //point in polygon test by ray casting
@@ -293,11 +294,40 @@ public class Polygon {
             }
             if((intersections & 1) == 1){
                 //even intersections so inside polygon
+                Utils.Log("true 1",3);
                 return true;
             }else{
+                intersections = getIntersectionsWithDiffVectorStartPos(point, sideVectors);
+                if((intersections & 1) == 1) {
+                    Utils.Log("true 2", 3);
+                    return true;
+                }
+                Utils.Log("false intersection check",5);
                 return false;
             }
         }
+    }
+
+    private void calibrateCCenterBasedOnVertices(){
+        float x = 0, y = 0;
+        for(PointF vertex: vertices){
+            x += vertex.x;
+            y += vertex.y;
+        }
+        x /= vertices.size();
+        y /= vertices.size();
+        ccenter.x = x;
+        ccenter.y = y;
+    }
+
+    private int getIntersectionsWithDiffVectorStartPos(PointF point, List<PointF> sideVectors){
+        int intersections = 0;
+        for(int i=0; i<sides; i++){
+            if(Generic.doVectorsIntersect(new PointF(200,0), point, vertices.get(i), sideVectors.get(i))){
+                intersections++;
+            }
+        }
+        return intersections;
     }
 
     public Path draw(Path path){
@@ -339,6 +369,15 @@ public class Polygon {
             this.vertices = new ArrayList<PointF>(vertices);
         else
             throw new IllegalArgumentException();
+    }
+
+    public void setVertex(int index, PointF point){
+        if(index < vertices.size()){
+            vertices.set(index, new PointF(point.x, point.y));
+            calibrateCCenterBasedOnVertices();
+        }else{
+            throw new IllegalArgumentException();
+        }
     }
 
     public void setCcenter(PointF ccenter) {

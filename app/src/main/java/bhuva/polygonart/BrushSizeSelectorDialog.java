@@ -14,6 +14,7 @@ import android.widget.SeekBar;
 import java.util.logging.Logger;
 
 import bhuva.polygonart.Polyart.PolyartMgr;
+import bhuva.polygonart.UI.BrushSizeView;
 
 /**
  * Created by bhuva on 2/12/2017.
@@ -21,12 +22,19 @@ import bhuva.polygonart.Polyart.PolyartMgr;
 public class BrushSizeSelectorDialog extends DialogFragment {
 
     BrushSelectionListener mBrushSelectionListener;
-    SeekBar seekBar;
-    SurfaceView brushSizeDrawer;
+    SeekBar sizeBar, sidesBar;
+    BrushSizeView brushSizeDrawer;
+
+    int MIN_SIDES_ALLOWED = 3;
+    int MAX_SIDES_ALLOWED = 25;
+
+    int MIN_BRUSH_SIZE = 1;
+    int MAX_BRUSH_SIZE = 200;
 
     public interface BrushSelectionListener{
         public void onSetBrushSize(int size);
-        public void onCancel(DialogFragment dialog);
+        public void onSetSidesCount(int count);
+        public void onBrushDialogCancel(DialogFragment dialog);
     }
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -36,15 +44,15 @@ public class BrushSizeSelectorDialog extends DialogFragment {
         View dialogView = inflater.inflate(R.layout.activity_brush_size_selection, null);
         configureUI(dialogView);
         builder.setView(dialogView)
-            .setMessage(R.string.select_brush_size)
             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-                    mBrushSelectionListener.onSetBrushSize(seekBar.getProgress());
+                    mBrushSelectionListener.onSetBrushSize(sizeBar.getProgress());
+                    mBrushSelectionListener.onSetSidesCount(sidesBar.getProgress());
                 }
             })
             .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-                    mBrushSelectionListener.onCancel(BrushSizeSelectorDialog.this);
+                    mBrushSelectionListener.onBrushDialogCancel(BrushSizeSelectorDialog.this);
                 }
             });
 
@@ -57,20 +65,53 @@ public class BrushSizeSelectorDialog extends DialogFragment {
         super.onAttach(activity);
         try{
             mBrushSelectionListener = (BrushSelectionListener)activity;
+            brushSizeDrawer.reDraw(PolyartMgr.getCurBrushSize(), PolyartMgr.getCurPolygonSides()); //to fix the polygon at center
         }catch (Exception e){
             Utils.Log("BRUSH SELECTOR DIALOG:"+e.getMessage(), 5);
         }
     }
 
     private void configureUI(View view){
-        seekBar = (SeekBar)view.findViewById(R.id.seekBar);
-        seekBar.setMax(100);
-        seekBar.setProgress(PolyartMgr.getCurBrushSize());
+        brushSizeDrawer = (BrushSizeView) view.findViewById(R.id.brushSizeDrawer);
 
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        sizeBar = (SeekBar)view.findViewById(R.id.seekBar);
+        sizeBar.setMax(500);
+        sizeBar.setProgress(PolyartMgr.getCurBrushSize());
+
+        sizeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Utils.Log("Seekbar: " + Integer.toString(progress), 3);
+                if(progress < MIN_BRUSH_SIZE){
+                    seekBar.setProgress(MIN_BRUSH_SIZE);
+                }
+                if(brushSizeDrawer!=null) {
+                    brushSizeDrawer.reDraw(sizeBar.getProgress(), sidesBar.getProgress());
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+
+        sidesBar = (SeekBar) view.findViewById(R.id.sideCountBar);
+        sidesBar.setMax(MAX_SIDES_ALLOWED);
+        sidesBar.setProgress(PolyartMgr.getCurPolygonSides());
+
+        sidesBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(progress < MIN_SIDES_ALLOWED){
+                    sidesBar.setProgress(MIN_SIDES_ALLOWED);
+                }
+                if(brushSizeDrawer!=null) {
+                    brushSizeDrawer.reDraw(sizeBar.getProgress(), sidesBar.getProgress());
+                }
             }
 
             @Override
@@ -84,8 +125,6 @@ public class BrushSizeSelectorDialog extends DialogFragment {
             }
         });
 
-        brushSizeDrawer = (SurfaceView) view.findViewById(R.id.brushSizeDrawer);
 
-        Utils.Log("UI CONFIGURED",5);
     }
 }

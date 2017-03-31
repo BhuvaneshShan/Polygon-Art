@@ -2,6 +2,7 @@ package bhuva.polygonart.Polyart;
 
 import android.app.usage.UsageEvents;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -24,25 +25,30 @@ import bhuva.polygonart.Common.Pair;
 import bhuva.polygonart.Graphics.Generic;
 import bhuva.polygonart.Graphics.Vec2D;
 import bhuva.polygonart.UI.SelectionCircle;
+import bhuva.polygonart.Utils;
 
 /**
  * Created by bhuva on 5/8/2016.
  */
 public class PolyartMgr {
 
+    public static PolyartMgr polyartMgr=null;
+
     private static List<Polygon> polygons;
 
     private static boolean polygonCreationInProgress = false;
+    private static boolean polygonRemovalInProgress = false;
     private static boolean isMotionDownEventActive = false;
+    private static boolean polygonEditingInProgress = false;
 
-    private Paint paint;
-
-    private static int curColor = Color.MAGENTA;
+    private static String DefaultColor = "0xFF03A9F4"; //Light Blue
+    private static int defaultColor = Color.DKGRAY;
+    private static int curColor = defaultColor;
     private static int curBrushSize = 50;
     private static int curPolygonSides = 3;
 
-    private static List<SelectionCircle> selCircles;
-
+    private static PolygonEditor polygonEditor;
+    private Paint paint;
     private Random rnd = new Random();
     private Point screenDim = new Point();
 
@@ -50,6 +56,13 @@ public class PolyartMgr {
     private static Mode curMode;
 
     private String TAG = "POLYART_MGR";
+
+    public static PolyartMgr getInstance(Context context){
+        if(polyartMgr == null){
+            polyartMgr = new PolyartMgr(context);
+        }
+        return polyartMgr;
+    }
 
     public PolyartMgr(Context context){
         polygons = new ArrayList<Polygon>();
@@ -59,7 +72,6 @@ public class PolyartMgr {
         Log.d(TAG,"Dim:"+screenDim.x+", "+screenDim.y);
         setupPaint();
         curMode = Mode.CreationMode;
-        selCircles = new ArrayList<>();
     }
 
     public void onTouchEvent(MotionEvent event){
@@ -78,6 +90,7 @@ public class PolyartMgr {
                     } else if (curMode == Mode.EditingMode) {
                         //editing of triangle
                         Log.d(TAG, "In Editing mode");
+                        editPolygonAt(curX, curY);
                     } else if(curMode == Mode.RemoveMode){
                         removePolygonAt(curX, curY);
                     }
@@ -91,7 +104,14 @@ public class PolyartMgr {
                         }
                     } else if (curMode == Mode.EditingMode) {
                         //editing of triangle
-                        Log.d(TAG, "In Editing mode");
+                        if(!polygonEditingInProgress){
+                            editPolygonAt(curX, curY);
+                        }
+
+                    } else if(curMode == Mode.RemoveMode){
+                        if(!polygonRemovalInProgress){
+                            removePolygonAt(curX, curY);
+                        }
                     }
                     break;
 
@@ -103,6 +123,8 @@ public class PolyartMgr {
 
     public void drawOnCanvas(Canvas canvas){
         Path path = new Path();
+
+        //draw the Polygons
         for (Polygon t : polygons) {
 
             if(t.isVisible()) {
@@ -115,9 +137,11 @@ public class PolyartMgr {
             }
         }
 
-        for(SelectionCircle c : selCircles){
-            c.draw(canvas);
+        //draw editing points
+        if(curMode == Mode.EditingMode && polygonEditor!=null && polygonEditor.isSelPolygonValid()){
+            polygonEditor.drawEditingPoints(canvas);
         }
+
     }
 
     public void createNew(float x, float y, boolean appending){
@@ -140,11 +164,41 @@ public class PolyartMgr {
     }
 
     public void removePolygonAt(float x, float y){
+        polygonRemovalInProgress = true;
         PointF touchPoint = new PointF(x, y);
         for(int i=polygons.size()-1; i>=0; i--){
             Polygon p = polygons.get(i);
             if( p.contains(touchPoint) && p.isVisible()){
                 p.setVisible(false);
+                break;
+            }
+        }
+        polygonRemovalInProgress = false;
+    }
+
+    public void editPolygonAt(float x, float y){
+        polygonEditingInProgress = true;
+        PointF touchPoint = new PointF(x, y);
+        //check if cur polygon is transformed
+        if(polygonEditor == null){
+            updatePolygonEditorBasedOnTouchPoint(touchPoint);
+        }else{
+            boolean transformed = false;
+            if(polygonEditor.isSelPolygonValid()) {
+                transformed = polygonEditor.transformSelPolygonBy(touchPoint);
+            }
+            if(!transformed){
+                updatePolygonEditorBasedOnTouchPoint(touchPoint);
+            }
+        }
+        polygonEditingInProgress = false;
+    }
+
+    private void updatePolygonEditorBasedOnTouchPoint(PointF touchPoint){
+        for (int i = polygons.size() - 1; i >= 0; i--) {
+            Polygon p = polygons.get(i);
+            if (p.contains(touchPoint) && p.isVisible()) {
+                polygonEditor = new PolygonEditor(i, polygons);
                 break;
             }
         }
@@ -221,12 +275,15 @@ public class PolyartMgr {
 
     public static void clearAll(){
         curBrushSize = 50;
-        curColor = Color.RED;
+        curColor = defaultColor;
         curPolygonSides = 3;
         polygons.clear();
         polygonCreationInProgress =false;
-        selCircles.clear();
+        polygonRemovalInProgress = false;
         isMotionDownEventActive = false;
+        polygonEditingInProgress = false;
+        polygonEditor = null;
+        curMode = Mode.CreationMode;
     }
 
     public static void setBrushSize(int size){
@@ -234,7 +291,11 @@ public class PolyartMgr {
     }
 
     public static void setColor(int color){
-        curColor = color;
+        if(curMode == Mode.EditingMode && polygonEditor!=null){
+            polygonEditor.setColor(color);
+        }else {
+            curColor = color;
+        }
     }
 
     public static void done(){
@@ -248,6 +309,14 @@ public class PolyartMgr {
 
     public static Mode getMode(){
         return curMode;
+    }
+
+    public static int getCurPolygonSides() {
+        return curPolygonSides;
+    }
+
+    public static void setCurPolygonSides(int curPolygonSides) {
+        PolyartMgr.curPolygonSides = curPolygonSides;
     }
 
     public static int getCurBrushSize(){
@@ -269,4 +338,13 @@ public class PolyartMgr {
             return true;
         return false;
     }
+
+    public Bitmap retrieveBitmap(){
+        Bitmap bitmap = Bitmap.createBitmap(screenDim.x, screenDim.y, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(Color.WHITE);
+        drawOnCanvas(canvas);
+        return bitmap;
+    }
+
 }

@@ -21,13 +21,13 @@ import bhuva.polygonart.Polyart.PolyartMgr;
 public class DrawingView extends View {
 
     private int initialColor = Color.LTGRAY;
-    private static PolyartMgr polyartMgr;
+    private PolyartMgr polyartMgr;
 
     public DrawingView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setFocusable(true);
         setFocusableInTouchMode(true);
-        polyartMgr = new PolyartMgr(context);
+        polyartMgr = PolyartMgr.getInstance(context);
         setupDebugPaint();
     }
 

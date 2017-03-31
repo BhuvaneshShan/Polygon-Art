@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android"
 package="bhuva.polygonart">
 
-<application android:allowBackup="true" android:icon="@mipmap/polygon_art_logo" android:label="@string/app_name"
+    <application android:allowBackup="true" android:icon="@mipmap/polygon_art_logo" android:label="@string/app_name"
     android:supportsRtl="true" android:theme="@style/AppTheme">
+
     <activity android:name=".MainActivity" android:label="@string/app_name" android:theme="@style/AppTheme.NoActionBar">
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
@@ -11,11 +12,10 @@ package="bhuva.polygonart">
         </intent-filter>
     </activity>
 
-    <activity android:name="bhuva.polygonart.BrushSizeSelectionActivity"
-        android:label="@string/title_activity_brush_size_selection"
-            android:theme="@android:style/Theme.Holo.Dialog">
-    </activity>
+    </application>
 
-</application>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"></uses-permission>
+
     <supports-screens android:anyDensity="true" />
 </manifest>

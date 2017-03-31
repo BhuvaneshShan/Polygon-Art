@@ -1,5 +1,6 @@
 package bhuva.polygonart;
 
+import android.graphics.Color;
 import android.util.Log;
 
 import java.util.Random;
@@ -30,5 +31,9 @@ public final class Utils {
         hsv[2] = hsv[2]>1?1:hsv[2];
         hsv[2] = hsv[2]<0?0:hsv[2];
         return HSVToColor(hsv);
+    }
+
+    public static int getColorFromHex(String hexColor){
+        return Color.parseColor(hexColor);
     }
 }
