@@ -90,7 +90,7 @@ public class PolyartMgr {
                     } else if (curMode == Mode.EditingMode) {
                         //editing of triangle
                         Log.d(TAG, "In Editing mode");
-                        editPolygonAt(curX, curY);
+                        selectPolygonOrVertexAt(curX, curY);
                     } else if(curMode == Mode.RemoveMode){
                         removePolygonAt(curX, curY);
                     }
@@ -105,7 +105,7 @@ public class PolyartMgr {
                     } else if (curMode == Mode.EditingMode) {
                         //editing of triangle
                         if(!polygonEditingInProgress){
-                            editPolygonAt(curX, curY);
+                            transformPolygonOrVertexAt(curX, curY);
                         }
 
                     } else if(curMode == Mode.RemoveMode){
@@ -116,6 +116,9 @@ public class PolyartMgr {
                     break;
 
                 case MotionEvent.ACTION_UP:
+                    if(curMode == Mode.EditingMode){
+                        //release values? needed?
+                    }
                     break;
             }
         }
@@ -138,7 +141,7 @@ public class PolyartMgr {
         }
 
         //draw editing points
-        if(curMode == Mode.EditingMode && polygonEditor!=null && polygonEditor.isSelPolygonValid()){
+        if(curMode == Mode.EditingMode && polygonEditor!=null && polygonEditor.isSelectedPolygonValid()){
             polygonEditor.drawEditingPoints(canvas);
         }
 
@@ -176,32 +179,46 @@ public class PolyartMgr {
         polygonRemovalInProgress = false;
     }
 
-    public void editPolygonAt(float x, float y){
+    public void selectPolygonOrVertexAt(float x, float y){
         polygonEditingInProgress = true;
         PointF touchPoint = new PointF(x, y);
         //check if cur polygon is transformed
         if(polygonEditor == null){
-            updatePolygonEditorBasedOnTouchPoint(touchPoint);
-        }else{
-            boolean transformed = false;
+            polygonEditor = new PolygonEditor(touchPoint, polygons);
+        }else if(!polygonEditor.isPolygonSelected() || !polygonEditor.isSelectedPolygonValid()){
+            polygonEditor = new PolygonEditor(touchPoint, polygons);
+        } else{
+            polygonEditor.selectVertexBasedOnTouchPoint(touchPoint);
+            if(!polygonEditor.isVertexSelected()){
+                polygonEditor = new PolygonEditor(touchPoint, polygons);
+            }
+            /*boolean transformed = false;
             if(polygonEditor.isSelPolygonValid()) {
                 transformed = polygonEditor.transformSelPolygonBy(touchPoint);
             }
             if(!transformed){
                 updatePolygonEditorBasedOnTouchPoint(touchPoint);
+            }*/
+        }
+        polygonEditingInProgress = false;
+    }
+
+    public void transformPolygonOrVertexAt(float x, float y){
+        polygonEditingInProgress = true;
+        if(polygonEditor!=null){
+            if(polygonEditor.isPolygonSelected() && polygonEditor.isVertexSelected()) {
+                polygonEditor.transformSelectedPointTo(new PointF(x, y));
             }
         }
         polygonEditingInProgress = false;
     }
 
+    public void releaseVertexAt(float x, float y){
+        polygonEditingInProgress = false;
+    }
+
     private void updatePolygonEditorBasedOnTouchPoint(PointF touchPoint){
-        for (int i = polygons.size() - 1; i >= 0; i--) {
-            Polygon p = polygons.get(i);
-            if (p.contains(touchPoint) && p.isVisible()) {
-                polygonEditor = new PolygonEditor(i, polygons);
-                break;
-            }
-        }
+
     }
 
     private Polygon generateNeighbor(Polygon t, PointF touchPoint){
@@ -299,8 +316,7 @@ public class PolyartMgr {
     }
 
     public static void done(){
-        //saving
-        curPolygonSides++;
+
     }
 
     public static void setMode(Mode mode){
