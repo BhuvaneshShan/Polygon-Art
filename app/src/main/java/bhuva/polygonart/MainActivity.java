@@ -2,13 +2,17 @@ package bhuva.polygonart;
 
 import android.Manifest;
 import android.app.DialogFragment;
+import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.icu.text.DateTimePatternGenerator;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
 
     public static final String PolygonArt = "PolygonArt";
     private static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 147;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,7 +120,14 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         if (permissionCheck == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
         }else {
-            saveAsJpeg(PolyartMgr.getInstance(getApplicationContext()).retrieveBitmap());
+            String info = saveAsJpeg(PolyartMgr.getInstance(getApplicationContext()).retrieveBitmap());
+            if(info.contains("Error")){
+               //show error message
+                showErrorDialog(info);
+            }else{
+                //show share dialog
+                showShareDialog(info);
+            }
         }
     }
 
@@ -203,9 +215,9 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         Utils.Log("dialog dismissed color called!",3);
     }
 
-    private void saveAsJpeg(Bitmap content){
+    private String saveAsJpeg(Bitmap content){
         try {
-            File polyartDir = new File(Environment.getExternalStorageDirectory(), PolygonArt );
+            File polyartDir = getPolygonArtDir();
             if (!polyartDir.exists()) {
                 polyartDir.mkdirs();
             }
@@ -223,10 +235,10 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
 
             exposeToGallery(file.getAbsolutePath());
 
-            Toast.makeText(getApplicationContext(), "Saved as "+PolygonArt+"/"+file.getName(), Toast.LENGTH_LONG);
+            return file.getName();
         } catch (Exception e) {
             Utils.Log(e.getMessage(), 5);
-            Toast.makeText(getApplicationContext(), "Save error:"+e.getLocalizedMessage(), Toast.LENGTH_LONG);
+            return "Error while saving: "+e.getLocalizedMessage();
         }
     }
 
@@ -246,5 +258,72 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         getApplicationContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
     }
 
+    private void showShareDialog(final String filename){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        String message = "Image saved as "+filename+"\n\nShare your creation with your friends!";
+        builder.setTitle("Saved!")
+                .setIcon(R.drawable.ic_done_save)
+                .setMessage(message)
+                .setPositiveButton("Share via Twitter", new DialogInterface.OnClickListener(){
+                    public void onClick(DialogInterface dialog, int id){
+                        shareSavedImage(filename);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        builder.show();
+    }
 
+    private void showErrorDialog(String error){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        String message = error;
+        builder.setMessage(message)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener(){
+                    public void onClick(DialogInterface dialog, int id){
+                        dialog.dismiss();
+                    }
+                });
+        builder.show();
+    }
+
+    private void shareSavedImage(String filename){
+        try {
+            File image = new File(getPolygonArtDir(), filename);
+            if (image.exists()) {
+                //Uri uri = MediaStore.Images.Media.getContentUri(image.getAbsolutePath());
+                Uri uri = Uri.parse(image.getAbsolutePath());
+                //sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, uri));
+                Intent shareIntent = new Intent();
+                shareIntent.setAction(Intent.ACTION_SEND);
+                shareIntent.setPackage("com.twitter.android");
+                shareIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                shareIntent.putExtra(Intent.EXTRA_TEXT, "I created this using #" + PolygonArt);
+                shareIntent.setType("image/*");
+                //startActivity(Intent.createChooser(shareIntent, "Share to"));
+                startActivity(shareIntent);
+            } else {
+                Toast.makeText(this, "Error. Image not found!", Toast.LENGTH_SHORT).show();
+            }
+        }catch (ActivityNotFoundException ae){
+            Toast.makeText(this, "Kindly install Twitter to share your image!", Toast.LENGTH_LONG).show();
+        }catch (Exception e){
+            Toast.makeText(this, "Error: "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void deleteImage(String filename){
+        File image = new File(getPolygonArtDir(), filename);
+        if(image.exists()){
+            image.delete();
+        }
+    }
+
+    private File getPolygonArtDir(){
+        return new File(Environment.getExternalStorageDirectory(), PolygonArt);
+    }
 }
