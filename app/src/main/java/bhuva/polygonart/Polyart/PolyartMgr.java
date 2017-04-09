@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.os.Debug;
 import android.util.Log;
 import android.view.Display;
@@ -42,15 +43,22 @@ public class PolyartMgr {
     private static boolean polygonEditingInProgress = false;
 
     private static String DefaultColor = "0xFF03A9F4"; //Light Blue
-    private static int defaultColor = Color.DKGRAY;
+    private static int defaultColor = Color.BLUE;
     private static int curColor = defaultColor;
     private static int curBrushSize = 50;
     private static int curPolygonSides = 3;
 
+    private static int backgroundColor = Color.CYAN;
+    private static Bitmap referenceImage=null;
+
     private static PolygonEditor polygonEditor;
     private Paint paint;
     private Random rnd = new Random();
-    private Point screenDim = new Point();
+    private static Point screenDim = new Point();
+
+    //used to draw ref Image
+    private Rect canvasBoundary = new Rect();
+    private static Point refImgPosition = new Point();
 
     public enum Mode{CreationMode, EditingMode, RemoveMode};
     private static Mode curMode;
@@ -70,6 +78,7 @@ public class PolyartMgr {
         Display display = wm.getDefaultDisplay();
         display.getSize(screenDim);
         Log.d(TAG,"Dim:"+screenDim.x+", "+screenDim.y);
+        canvasBoundary = new Rect(0,0,screenDim.x, screenDim.y);
         setupPaint();
         curMode = Mode.CreationMode;
     }
@@ -125,6 +134,13 @@ public class PolyartMgr {
     }
 
     public void drawOnCanvas(Canvas canvas){
+        //drawing bg
+        if(referenceImage==null) {
+            canvas.drawColor(backgroundColor);
+        }else{
+            canvas.drawBitmap(referenceImage, refImgPosition.x, refImgPosition.y, null);
+        }
+
         Path path = new Path();
 
         //draw the Polygons
@@ -140,7 +156,7 @@ public class PolyartMgr {
             }
         }
 
-        //draw editing points
+        //draw editing mode points
         if(curMode == Mode.EditingMode && polygonEditor!=null && polygonEditor.isSelectedPolygonValid()){
             polygonEditor.drawEditingPoints(canvas);
         }
@@ -294,7 +310,11 @@ public class PolyartMgr {
         curBrushSize = 50;
         curColor = defaultColor;
         curPolygonSides = 3;
+        backgroundColor = Color.WHITE;
+        referenceImage = null;
+
         polygons.clear();
+
         polygonCreationInProgress =false;
         polygonRemovalInProgress = false;
         isMotionDownEventActive = false;
@@ -308,15 +328,11 @@ public class PolyartMgr {
     }
 
     public static void setColor(int color){
-        if(curMode == Mode.EditingMode && polygonEditor!=null){
-            polygonEditor.setColor(color);
+        if(curMode == Mode.EditingMode && polygonEditor!=null && polygonEditor.isSelectedPolygonValid()){
+            polygonEditor.setPolygonColor(color);
         }else {
             curColor = color;
         }
-    }
-
-    public static void done(){
-
     }
 
     public static void setMode(Mode mode){
@@ -343,6 +359,26 @@ public class PolyartMgr {
         return curColor;
     }
 
+    public static int getBackgroundColor() {
+        return backgroundColor;
+    }
+
+    public static void setBackgroundColor(int backgroundColor) {
+        PolyartMgr.backgroundColor = backgroundColor;
+    }
+
+    public static void setReferenceImage(Bitmap referenceImage) {
+        if(referenceImage!=null) {
+            refImgPosition.x = (screenDim.x - referenceImage.getWidth()) / 2;
+            refImgPosition.y = (screenDim.y - referenceImage.getHeight()) / 2;
+        }
+        PolyartMgr.referenceImage = referenceImage;
+    }
+
+    public static boolean isReferenceImageSet(){
+        return (referenceImage!=null);
+    }
+
     private boolean isWithinScreenDim(float x, float y){
         if (x >=0 && x<=screenDim.x && y>=0 && y<=screenDim.y)
             return true;
@@ -358,7 +394,7 @@ public class PolyartMgr {
     public Bitmap retrieveBitmap(){
         Bitmap bitmap = Bitmap.createBitmap(screenDim.x, screenDim.y, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        canvas.drawColor(Color.WHITE);
+        canvas.drawColor(getBackgroundColor());
         drawOnCanvas(canvas);
         return bitmap;
     }

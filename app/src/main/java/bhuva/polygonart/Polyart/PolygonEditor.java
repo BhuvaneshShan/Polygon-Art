@@ -110,7 +110,7 @@ public class PolygonEditor {
         isVertexSelected = vertexSelected;
     }
 
-    public void setColor(int color){
+    public void setPolygonColor(int color){
         selPolygon.setColor(color);
     }
 

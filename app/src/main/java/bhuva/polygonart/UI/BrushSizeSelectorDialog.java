@@ -1,4 +1,4 @@
-package bhuva.polygonart;
+package bhuva.polygonart.UI;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -7,14 +7,12 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.SurfaceView;
 import android.view.View;
 import android.widget.SeekBar;
 
-import java.util.logging.Logger;
-
 import bhuva.polygonart.Polyart.PolyartMgr;
-import bhuva.polygonart.UI.BrushSizeView;
+import bhuva.polygonart.R;
+import bhuva.polygonart.Utils;
 
 /**
  * Created by bhuva on 2/12/2017.

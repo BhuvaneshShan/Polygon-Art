@@ -13,6 +13,12 @@ import static android.graphics.Color.*;
 public final class Utils {
     private static int PriorityMin = 2;
     private static Random random = new Random();
+
+    public static final int COLOR_DIALOG_POLYGON_SELECTOR_ID = 1;
+    public static final int COLOR_DIALOG_BACKGROUND_SELECTOR_ID = 2;
+
+    public static final int INTENT_RESULT_SELECT_REF_IMG = 1;
+
     public static void Log(String s, int priority){
         if(priority > PriorityMin)
             Log.d("Polyart", s);

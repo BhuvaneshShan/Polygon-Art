@@ -275,7 +275,7 @@ public class Polygon {
         //first fast check if inside circum circle
         inside = Generic.relDist(point, ccenter) < Math.pow( Generic.dist(ccenter, vertices.get(0)), 2);
         if(!inside) {
-            Utils.Log("false circle check",5);
+            Utils.Log("false circle check",0);
             return false;
         }else{
             //point in polygon test by ray casting
@@ -294,15 +294,15 @@ public class Polygon {
             }
             if((intersections & 1) == 1){
                 //even intersections so inside polygon
-                Utils.Log("true 1",3);
+                Utils.Log("true 1",0);
                 return true;
             }else{
                 intersections = getIntersectionsWithDiffVectorStartPos(point, sideVectors);
                 if((intersections & 1) == 1) {
-                    Utils.Log("true 2", 3);
+                    Utils.Log("true 2", 0);
                     return true;
                 }
-                Utils.Log("false intersection check",5);
+                Utils.Log("false intersection check",0);
                 return false;
             }
         }

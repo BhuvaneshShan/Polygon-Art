@@ -7,11 +7,10 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.icu.text.DateTimePatternGenerator;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -20,8 +19,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.text.format.DateUtils;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,13 +30,12 @@ import com.jrummyapps.android.colorpicker.ColorPickerDialogListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.util.Timer;
 
 import bhuva.polygonart.Polyart.PolyartMgr;
+import bhuva.polygonart.UI.BrushSizeSelectorDialog;
+import bhuva.polygonart.UI.CanvasSettings;
 
-public class MainActivity extends AppCompatActivity implements BrushSizeSelectorDialog.BrushSelectionListener, ColorPickerDialogListener {
+public class MainActivity extends AppCompatActivity implements BrushSizeSelectorDialog.BrushSelectionListener, ColorPickerDialogListener, CanvasSettings.CanvasSettingsListener {
 
     public static final String PolygonArt = "PolygonArt";
     private static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 147;
@@ -90,9 +86,27 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         decorView.setSystemUiVisibility(uiOptions);
     }
 
+    //Buttons clicks
     public void onClickCreateNewFile(View view) {
         PolyartMgr.clearAll();
         reDrawDrawingView();
+        refreshIcons();
+    }
+
+    public void onClickBrushSize(View view) {
+        BrushSizeSelectorDialog dialog = new BrushSizeSelectorDialog();
+        dialog.show(getFragmentManager(), "Brush Size Selector");
+    }
+
+    public void onClickColorSelector(View view) {
+        int oldColor = PolyartMgr.getCurColor();
+        ColorPickerDialog.newBuilder()
+                .setDialogId(Utils.COLOR_DIALOG_POLYGON_SELECTOR_ID)
+                .setDialogType(ColorPickerDialog.TYPE_PRESETS)
+                .setAllowPresets(true)
+                .setColor(oldColor)
+                .setShowAlphaSlider(false)
+                .show(this);
     }
 
     public void onClickRemovePoly(View view){
@@ -113,6 +127,11 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         }
         reDrawDrawingView();
         refreshIcons();
+    }
+
+    public void onClickCanvasSettings(View view){
+        CanvasSettings dialog = new CanvasSettings();
+        dialog.show(getFragmentManager(), "Canvas Settings");
     }
 
     public void onClickDone(View view) {
@@ -165,13 +184,7 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         drawingView.invalidate();
     }
 
-    //Brush dialog functions
-
-    public void onClickBrushSize(View view) {
-        BrushSizeSelectorDialog dialog = new BrushSizeSelectorDialog();
-        dialog.show(getFragmentManager(), "Brush Size Selector");
-    }
-
+    //Brush dialog listener
     @Override
     public void onSetBrushSize(int size){
         enableFullScreenMode();
@@ -190,23 +203,21 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         Utils.Log("Brush Dialog cancel called!",2);
     }
 
-    //Color Pallette functions
 
-    public void onClickColorSelector(View view) {
-        int oldColor = PolyartMgr.getCurColor();
-        ColorPickerDialog.newBuilder()
-                .setDialogType(ColorPickerDialog.TYPE_PRESETS)
-                .setAllowPresets(true)
-                .setColor(oldColor)
-                .setShowAlphaSlider(false)
-                .show(this);
-    }
-
+    //Color Pallette listnere
     @Override
     public void onColorSelected(int dialogId, int color) {
-        enableFullScreenMode();
-        Utils.Log("onColorSelected called!",3);
-        PolyartMgr.setColor(color);
+        switch (dialogId) {
+            case Utils.COLOR_DIALOG_POLYGON_SELECTOR_ID:
+                enableFullScreenMode();
+                Utils.Log("onColorSelected called!", 3);
+                PolyartMgr.setColor(color);
+                break;
+            case Utils.COLOR_DIALOG_BACKGROUND_SELECTOR_ID:
+                onBackgroundColorSelected(color);
+                Utils.Log("bg color selector called!", 3);
+                break;
+        }
     }
 
     @Override
@@ -215,6 +226,8 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         Utils.Log("dialog dismissed color called!",3);
     }
 
+
+    //Save functions
     private String saveAsJpeg(Bitmap content){
         try {
             File polyartDir = getPolygonArtDir();
@@ -325,5 +338,53 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
 
     private File getPolygonArtDir(){
         return new File(Environment.getExternalStorageDirectory(), PolygonArt);
+    }
+
+
+    //Canvas Setting Listener
+    @Override
+    public void onBackgroundColorSelected(int color) {
+        PolyartMgr.setReferenceImage(null);
+        PolyartMgr.setBackgroundColor(color);
+    }
+
+    @Override
+    public void onReferenceImageSelected(Bitmap refImage) {
+        PolyartMgr.setReferenceImage(refImage);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        try {
+            Utils.Log("Received result!", 3);
+            // When an Image is picked
+            if (requestCode == Utils.INTENT_RESULT_SELECT_REF_IMG && resultCode == RESULT_OK
+                    && null != data) {
+                // Get the Image from data
+
+                Uri selectedImage = data.getData();
+                String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+                // Get the cursor
+                Cursor cursor = getContentResolver().query(selectedImage,
+                        filePathColumn, null, null, null);
+                // Move to first row
+                cursor.moveToFirst();
+
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                String imgDecodableString = cursor.getString(columnIndex);
+                cursor.close();
+                // Set the Image in ImageView after decoding the String
+                Bitmap refImage = BitmapFactory.decodeFile(imgDecodableString);
+                onReferenceImageSelected(refImage);
+                Utils.Log("Ref iamge set", 3);
+            } else {
+                Toast.makeText(this, "You haven't picked any image", Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Couldn't fetch image", Toast.LENGTH_LONG).show();
+        }
+
     }
 }
