@@ -48,7 +48,7 @@ public class PolyartMgr {
     private static int curBrushSize = 50;
     private static int curPolygonSides = 3;
 
-    private static int backgroundColor = Color.CYAN;
+    private static int backgroundColor = Color.WHITE;
     private static Bitmap referenceImage=null;
 
     private static PolygonEditor polygonEditor;
@@ -57,13 +57,12 @@ public class PolyartMgr {
     private static Point screenDim = new Point();
 
     //used to draw ref Image
-    private Rect canvasBoundary = new Rect();
     private static Point refImgPosition = new Point();
 
     public enum Mode{CreationMode, EditingMode, RemoveMode};
     private static Mode curMode;
 
-    private String TAG = "POLYART_MGR";
+    private static final String TAG = "POLYART_MGR";
 
     public static PolyartMgr getInstance(Context context){
         if(polyartMgr == null){
@@ -78,8 +77,8 @@ public class PolyartMgr {
         Display display = wm.getDefaultDisplay();
         display.getSize(screenDim);
         Log.d(TAG,"Dim:"+screenDim.x+", "+screenDim.y);
-        canvasBoundary = new Rect(0,0,screenDim.x, screenDim.y);
         setupPaint();
+        clearAll();
         curMode = Mode.CreationMode;
     }
 
@@ -397,6 +396,13 @@ public class PolyartMgr {
         canvas.drawColor(getBackgroundColor());
         drawOnCanvas(canvas);
         return bitmap;
+    }
+
+    public static void onDeviceRotated(Context context){
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        display.getSize(screenDim);
+        Log.d(TAG,"Phone rotated new dim:"+screenDim.x+", "+screenDim.y);
     }
 
 }

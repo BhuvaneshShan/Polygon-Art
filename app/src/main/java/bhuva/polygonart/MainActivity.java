@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -45,7 +46,6 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         super.onCreate(savedInstanceState);
         enableFullScreenMode();
         setContentView(R.layout.activity_main);
-
     }
 
     @Override
@@ -76,6 +76,12 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         enableFullScreenMode();
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        PolyartMgr.onDeviceRotated(getApplicationContext());
+    }
+
     public void enableFullScreenMode(){
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -88,9 +94,26 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
 
     //Buttons clicks
     public void onClickCreateNewFile(View view) {
-        PolyartMgr.clearAll();
-        reDrawDrawingView();
-        refreshIcons();
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle(PolygonArt)
+                .setMessage("Would you like to create a new canvas?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        PolyartMgr.clearAll();
+                        reDrawDrawingView();
+                        refreshIcons();
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        dialog.show();
+
     }
 
     public void onClickBrushSize(View view) {
@@ -282,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
                         shareSavedImage(filename);
                     }
                 })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setNegativeButton("Close", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();

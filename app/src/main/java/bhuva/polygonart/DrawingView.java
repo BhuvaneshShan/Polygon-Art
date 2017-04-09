@@ -20,7 +20,6 @@ import bhuva.polygonart.Polyart.PolyartMgr;
  */
 public class DrawingView extends View {
 
-    private int initialColor = Color.LTGRAY;
     private PolyartMgr polyartMgr;
 
     public DrawingView(Context context, AttributeSet attrs) {
@@ -47,6 +46,7 @@ public class DrawingView extends View {
 
     Path debugPath = new Path();
     Paint debugPaint;
+
     private void debugTouch(MotionEvent event){
         float touchX = event.getX();
         float touchY = event.getY();
