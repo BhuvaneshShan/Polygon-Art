@@ -1,22 +1,28 @@
 package bhuva.polygonart.UI;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
 
 import com.jrummyapps.android.colorpicker.ColorPickerDialog;
 import com.jrummyapps.android.colorpicker.ColorPickerDialogListener;
 
+import bhuva.polygonart.MainActivity;
 import bhuva.polygonart.Polyart.PolyartMgr;
 import bhuva.polygonart.R;
 import bhuva.polygonart.Utils;
@@ -33,6 +39,7 @@ public class CanvasSettings extends DialogFragment{
     public interface CanvasSettingsListener{
         void onBackgroundColorSelected(int color);
         void onReferenceImageSelected(Bitmap refImage);
+        void onTranslucencyChanged(int translucency);
     }
 
     @Override
@@ -92,6 +99,7 @@ public class CanvasSettings extends DialogFragment{
                         .setAllowPresets(true)
                         .setShowAlphaSlider(false)
                         .show(getActivity());
+                CanvasSettings.this.dismiss();
             }
         });
 
@@ -99,9 +107,33 @@ public class CanvasSettings extends DialogFragment{
         refImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                getActivity().startActivityForResult(galleryIntent, Utils.INTENT_RESULT_SELECT_REF_IMG);
+                int permissionCheck = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
+                if (permissionCheck == PackageManager.PERMISSION_DENIED) {
+                    ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, Utils.PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                }else {
+                    Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    getActivity().startActivityForResult(galleryIntent, Utils.INTENT_RESULT_SELECT_REF_IMG);
+                }
+            }
+        });
+
+        SeekBar translucency = (SeekBar) view.findViewById(R.id.TranslucencyScrollbar);
+        translucency.setProgress(Utils.MAX_ALPHA_OPAQUE - PolyartMgr.getPolygonAlpha());
+        translucency.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                mCanvasSettingsListener.onTranslucencyChanged(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
     }

@@ -39,7 +39,6 @@ import bhuva.polygonart.UI.CanvasSettings;
 public class MainActivity extends AppCompatActivity implements BrushSizeSelectorDialog.BrushSelectionListener, ColorPickerDialogListener, CanvasSettings.CanvasSettingsListener {
 
     public static final String PolygonArt = "PolygonArt";
-    private static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 147;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,12 +102,14 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
                         PolyartMgr.clearAll();
                         reDrawDrawingView();
                         refreshIcons();
+                        enableFullScreenMode();
                         dialog.dismiss();
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        enableFullScreenMode();
                         dialog.dismiss();
                     }
                 });
@@ -160,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
     public void onClickDone(View view) {
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permissionCheck == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, Utils.PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
         }else {
             String info = saveAsJpeg(PolyartMgr.getInstance(getApplicationContext()).retrieveBitmap());
             if(info.contains("Error")){
@@ -176,13 +177,27 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE: {
+            case Utils.PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE:
+                //Request code from 'Done' button.
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    saveAsJpeg(PolyartMgr.getInstance(getApplicationContext()).retrieveBitmap());
+                    String info = saveAsJpeg(PolyartMgr.getInstance(getApplicationContext()).retrieveBitmap());
+                    if (info.contains("Error")) {
+                        //show error message
+                        showErrorDialog(info);
+                    } else {
+                        //show share dialog
+                        showShareDialog(info);
+                    }
                 }
                 break;
-            }
+
+            case Utils.PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE:
+                //Called from Canvas settings to read image from gallery to set reference image
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                this.startActivityForResult(galleryIntent, Utils.INTENT_RESULT_SELECT_REF_IMG);
+                break;
         }
     }
 
@@ -308,6 +323,7 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
                 .setNegativeButton("Close", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        enableFullScreenMode();
                         dialog.dismiss();
                     }
                 });
@@ -374,6 +390,12 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
     @Override
     public void onReferenceImageSelected(Bitmap refImage) {
         PolyartMgr.setReferenceImage(refImage);
+    }
+
+    @Override
+    public void onTranslucencyChanged(int translucency){
+        PolyartMgr.setPolygonAlpha(Utils.MAX_ALPHA_OPAQUE - translucency);
+        reDrawDrawingView();
     }
 
     @Override

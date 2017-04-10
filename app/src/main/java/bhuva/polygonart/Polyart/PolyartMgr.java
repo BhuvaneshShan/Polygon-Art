@@ -51,6 +51,8 @@ public class PolyartMgr {
     private static int backgroundColor = Color.WHITE;
     private static Bitmap referenceImage=null;
 
+    private static int polygonAlpha = Utils.MAX_ALPHA_OPAQUE;
+
     private static PolygonEditor polygonEditor;
     private Paint paint;
     private Random rnd = new Random();
@@ -143,6 +145,8 @@ public class PolyartMgr {
         Path path = new Path();
 
         //draw the Polygons
+        Utils.Log("polyalph:"+polygonAlpha, 3);
+
         for (Polygon t : polygons) {
 
             if(t.isVisible()) {
@@ -151,6 +155,7 @@ public class PolyartMgr {
                 path.close();
 
                 paint.setColor(t.getColor());
+                paint.setAlpha(polygonAlpha);
                 canvas.drawPath(path, paint);
             }
         }
@@ -303,6 +308,7 @@ public class PolyartMgr {
         paint.setColor(curColor);
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.FILL);
+        paint.setAlpha(Utils.MAX_ALPHA_OPAQUE);
     }
 
     public static void clearAll(){
@@ -372,6 +378,14 @@ public class PolyartMgr {
             refImgPosition.y = (screenDim.y - referenceImage.getHeight()) / 2;
         }
         PolyartMgr.referenceImage = referenceImage;
+    }
+
+    public static void setPolygonAlpha(int polygonAlpha) {
+        PolyartMgr.polygonAlpha = polygonAlpha;
+    }
+
+    public static int getPolygonAlpha() {
+        return PolyartMgr.polygonAlpha;
     }
 
     public static boolean isReferenceImageSet(){
