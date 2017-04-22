@@ -30,6 +30,7 @@ public class Generic {
         float u, v;
         PointF ad = a_dir, as = a_startPos, bd = b_dir, bs = b_startPos;
         try{
+            /*
             float denom =  (ad.x*bd.y - ad.y*bd.x);
             if(denom!=0) {
                 u = (as.y * bd.x + bd.y * bs.x - bs.y * bd.x - bd.y * as.x) / denom;
@@ -39,12 +40,31 @@ public class Generic {
                         return true;
                     }
                 }
+            }*/
+            float denom = crossProduct2D(ad, bd);
+            if(denom == 0){
+                return false;
+            }else{
+                float t = crossProduct2D( sub(bs, as), bd) / denom;
+                u = crossProduct2D( sub(bs, as), ad) / denom;
+                if(t>=0 && t<=1 && u >=0 && u<=1){
+                    return true;
+                }
             }
+
         }catch (ArithmeticException ae){
             //divide by zero
             Log.e(TAG+".VecIntersect", ae.getMessage() );
         }
         return false;
+    }
+
+    public static float crossProduct2D(PointF a, PointF b){
+        return a.x*b.y - a.y*b.x;
+    }
+
+    public static PointF sub(PointF a, PointF b){
+        return new PointF(a.x-b.x, a.y-b.y);
     }
 
 }

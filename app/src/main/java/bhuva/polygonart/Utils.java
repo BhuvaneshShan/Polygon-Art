@@ -13,6 +13,13 @@ import static android.graphics.Color.*;
 public final class Utils {
     private static int PriorityMin = 2;
     private static Random random = new Random();
+
+    public static final int MIN_SIDES_ALLOWED = 3;
+    public static final int MAX_SIDES_ALLOWED = 25;
+
+    public static final int MIN_BRUSH_SIZE = 1;
+    public static final int MAX_BRUSH_SIZE = 323;
+
     public static final int MAX_ALPHA_OPAQUE = 255;
 
     public static final int COLOR_DIALOG_POLYGON_SELECTOR_ID = 1;

@@ -194,9 +194,11 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
 
             case Utils.PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE:
                 //Called from Canvas settings to read image from gallery to set reference image
-                Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                this.startActivityForResult(galleryIntent, Utils.INTENT_RESULT_SELECT_REF_IMG);
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    this.startActivityForResult(galleryIntent, Utils.INTENT_RESULT_SELECT_REF_IMG);
+                }
                 break;
         }
     }

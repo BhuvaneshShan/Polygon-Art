@@ -34,7 +34,7 @@ public class PolygonEditor {
         isPolygonSelected = false;
         for (int i = polygons.size() - 1; i >= 0; i--) {
             Polygon p = polygons.get(i);
-            if (p.contains(touchPoint) && p.isVisible()) {
+            if ( p.isVisible() && p.contains(touchPoint)) {
                 selPolygonId = i;
                 selPolygon = p;
                 isPolygonSelected = true;

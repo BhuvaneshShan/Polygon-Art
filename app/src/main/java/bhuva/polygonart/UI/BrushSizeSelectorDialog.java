@@ -23,12 +23,6 @@ public class BrushSizeSelectorDialog extends DialogFragment {
     SeekBar sizeBar, sidesBar;
     BrushSizeView brushSizeDrawer;
 
-    int MIN_SIDES_ALLOWED = 3;
-    int MAX_SIDES_ALLOWED = 25;
-
-    int MIN_BRUSH_SIZE = 1;
-    int MAX_BRUSH_SIZE = 200;
-
     public interface BrushSelectionListener{
         public void onSetBrushSize(int size);
         public void onSetSidesCount(int count);
@@ -73,14 +67,14 @@ public class BrushSizeSelectorDialog extends DialogFragment {
         brushSizeDrawer = (BrushSizeView) view.findViewById(R.id.brushSizeDrawer);
 
         sizeBar = (SeekBar)view.findViewById(R.id.seekBar);
-        sizeBar.setMax(500);
+        sizeBar.setMax(Utils.MAX_BRUSH_SIZE);
         sizeBar.setProgress(PolyartMgr.getCurBrushSize());
 
         sizeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(progress < MIN_BRUSH_SIZE){
-                    seekBar.setProgress(MIN_BRUSH_SIZE);
+                if(progress < Utils.MIN_BRUSH_SIZE){
+                    seekBar.setProgress(Utils.MIN_BRUSH_SIZE);
                 }
                 if(brushSizeDrawer!=null) {
                     brushSizeDrawer.reDraw(sizeBar.getProgress(), sidesBar.getProgress());
@@ -97,15 +91,15 @@ public class BrushSizeSelectorDialog extends DialogFragment {
         });
 
         sidesBar = (SeekBar) view.findViewById(R.id.sideCountBar);
-        sidesBar.setMax(MAX_SIDES_ALLOWED);
+        sidesBar.setMax(Utils.MAX_SIDES_ALLOWED);
         sidesBar.setProgress(PolyartMgr.getCurPolygonSides());
 
         sidesBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(progress < MIN_SIDES_ALLOWED){
-                    sidesBar.setProgress(MIN_SIDES_ALLOWED);
+                if(progress < Utils.MIN_SIDES_ALLOWED){
+                    sidesBar.setProgress(Utils.MIN_SIDES_ALLOWED);
                 }
                 if(brushSizeDrawer!=null) {
                     brushSizeDrawer.reDraw(sizeBar.getProgress(), sidesBar.getProgress());

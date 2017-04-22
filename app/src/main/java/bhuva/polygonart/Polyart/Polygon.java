@@ -271,6 +271,9 @@ public class Polygon {
     }
 
     public boolean contains(PointF point){
+        if(!isVisible()){
+            return false;
+        }
         boolean inside = false;
         //first fast check if inside circum circle
         inside = Generic.relDist(point, ccenter) < Math.pow( Generic.dist(ccenter, vertices.get(0)), 2);
@@ -287,8 +290,10 @@ public class Polygon {
             }
             //checking ray intersection with sides;
             int intersections = 0;
+            PointF outsidePoint = getOutsidePoint();
+            PointF outsidePointToPointVector = new PointF(point.x - outsidePoint.x, point.y - outsidePoint.y );
             for(int i=0; i<sides; i++){
-                if(Generic.doVectorsIntersect(new PointF(0,0), point, vertices.get(i), sideVectors.get(i))){
+                if(Generic.doVectorsIntersect(outsidePoint, outsidePointToPointVector, vertices.get(i), sideVectors.get(i))){
                     intersections++;
                 }
             }
@@ -296,7 +301,7 @@ public class Polygon {
                 //even intersections so inside polygon
                 Utils.Log("true 1",0);
                 return true;
-            }else{
+            }/*else{
                 intersections = getIntersectionsWithDiffVectorStartPos(point, sideVectors);
                 if((intersections & 1) == 1) {
                     Utils.Log("true 2", 0);
@@ -304,8 +309,25 @@ public class Polygon {
                 }
                 Utils.Log("false intersection check",0);
                 return false;
-            }
+            }*/
+            return false;
         }
+    }
+
+    private PointF getOutsidePoint(){
+        float boundingBoxYMin = Float.MAX_VALUE;
+        float boundingBoxXMin = Float.MAX_VALUE;
+        float boundingBoxXMax = Float.MIN_VALUE;
+        for(PointF vertex: vertices){
+            if(vertex.x < boundingBoxYMin)
+                boundingBoxXMin = vertex.x;
+            if(vertex.x > boundingBoxXMax)
+                boundingBoxXMax = vertex.x;
+            if(vertex.y < boundingBoxYMin)
+                boundingBoxYMin = vertex.y;
+        }
+        float epsilon = (boundingBoxXMax - boundingBoxXMin)/100.f;
+        return new PointF(boundingBoxXMin - epsilon, boundingBoxYMin);
     }
 
     private void calibrateCCenterBasedOnVertices(){

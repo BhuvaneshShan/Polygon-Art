@@ -50,6 +50,8 @@ public class PolyartMgr {
 
     private static int backgroundColor = Color.WHITE;
     private static Bitmap referenceImage=null;
+    private static Rect refImgSrc = null;
+    private static Rect refImgDst = null;
 
     private static int polygonAlpha = Utils.MAX_ALPHA_OPAQUE;
 
@@ -139,7 +141,7 @@ public class PolyartMgr {
         if(referenceImage==null) {
             canvas.drawColor(backgroundColor);
         }else{
-            canvas.drawBitmap(referenceImage, refImgPosition.x, refImgPosition.y, null);
+            canvas.drawBitmap(referenceImage, refImgSrc, refImgDst, null);
         }
 
         Path path = new Path();
@@ -374,8 +376,13 @@ public class PolyartMgr {
 
     public static void setReferenceImage(Bitmap referenceImage) {
         if(referenceImage!=null) {
-            refImgPosition.x = (screenDim.x - referenceImage.getWidth()) / 2;
-            refImgPosition.y = (screenDim.y - referenceImage.getHeight()) / 2;
+            //refImgPosition.x = (screenDim.x - referenceImage.getWidth()) / 2;
+            //refImgPosition.y = (screenDim.y - referenceImage.getHeight()) / 2;
+            refImgSrc = new Rect(0,0,referenceImage.getWidth(),referenceImage.getHeight());
+            float scaleFactor = screenDim.x / (float)referenceImage.getWidth();
+            float refImgFinalHeight = referenceImage.getHeight() * scaleFactor;
+            float y = screenDim.y/2 - refImgFinalHeight/2;
+            refImgDst = new Rect(0, (int)y, screenDim.x, (int)(y+refImgFinalHeight));
         }
         PolyartMgr.referenceImage = referenceImage;
     }
