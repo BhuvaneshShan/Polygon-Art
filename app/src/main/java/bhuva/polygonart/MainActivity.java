@@ -212,10 +212,10 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
 
         if(PolyartMgr.getMode() == PolyartMgr.Mode.RemoveMode) {
             removeButton.setBackgroundResource(R.drawable.ic_remove_poly_clicked);
-            Toast.makeText(this, "In Remove mode. Touch polygons to delete! ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "You can delete polygons now! To start drawing, click Erase button again.", Toast.LENGTH_LONG).show();
         }else if(PolyartMgr.getMode() == PolyartMgr.Mode.EditingMode) {
             editButton.setBackgroundResource(R.drawable.ic_edit_poly_clicked);
-            Toast.makeText(this, "In Edit mode. Touch and drag polygons to edit! ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "You can edit polygons now by touching and dragging control points. To start drawing, click Edit button again. ", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -356,7 +356,7 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
                 shareIntent.setPackage("com.twitter.android");
                 shareIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
-                shareIntent.putExtra(Intent.EXTRA_TEXT, "I created this using #" + PolygonArt);
+                shareIntent.putExtra(Intent.EXTRA_TEXT, "I created this using #" + PolygonArt + "App");
                 shareIntent.setType("image/*");
                 //startActivity(Intent.createChooser(shareIntent, "Share to"));
                 startActivity(shareIntent);

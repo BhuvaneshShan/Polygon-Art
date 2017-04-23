@@ -14,12 +14,16 @@
         android:fontFamily="sans-serif"
         android:text="Brush Settings"
         android:textAlignment="center"
+        android:textAllCaps="false"
         android:textSize="18sp"
         android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
         <Button
@@ -29,11 +33,12 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif"
             android:text="Size"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:textAllCaps="false" />
 
         <SeekBar
             android:id="@+id/seekBar"
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_gravity="center_horizontal"
             android:indeterminate="false" />
@@ -49,6 +54,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
         <Button
@@ -58,11 +66,12 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif"
             android:text="Sides"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:textAllCaps="false" />
 
         <SeekBar
             android:id="@+id/sideCountBar"
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_gravity="center_horizontal"
             android:indeterminate="false" />
