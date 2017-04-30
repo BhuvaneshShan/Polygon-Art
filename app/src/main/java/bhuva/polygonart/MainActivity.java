@@ -174,6 +174,11 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         }
     }
 
+    public void onClickUndo(View view){
+        PolyartMgr.undo();
+        reDrawDrawingView();
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {

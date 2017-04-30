@@ -342,16 +342,6 @@ public class Polygon {
         ccenter.y = y;
     }
 
-    private int getIntersectionsWithDiffVectorStartPos(PointF point, List<PointF> sideVectors){
-        int intersections = 0;
-        for(int i=0; i<sides; i++){
-            if(Generic.doVectorsIntersect(new PointF(200,0), point, vertices.get(i), sideVectors.get(i))){
-                intersections++;
-            }
-        }
-        return intersections;
-    }
-
     public Path draw(Path path){
         path.moveTo(vertices.get(0).x, vertices.get(0).y);
         for(int i=1;i<sides;i++) {
@@ -381,7 +371,11 @@ public class Polygon {
     }
 
     public List<PointF> getVertices(){
-        return new ArrayList<PointF>(vertices);
+        List<PointF> verticesClone = new ArrayList<>(vertices.size());
+        for(int i=0; i<vertices.size(); i++){
+            verticesClone.add(new PointF(vertices.get(i).x, vertices.get(i).y));
+        }
+        return verticesClone;
     }
 
     public PointF getVertex(int id){ return new PointF(vertices.get(id).x, vertices.get(id).y); }
@@ -413,5 +407,19 @@ public class Polygon {
         }
         ccenter.x = 0;
         ccenter.y = 0;
+    }
+
+    public boolean equals(Polygon p){
+        if(p==null) return false;
+        if(this.ccenter.equals(p.getCCenter()) && this.color == p.getColor() && this.brushSize == p.getBrushSize()
+                && this.visible == p.isVisible() && this.getSides() == p.getSides()){
+            for(int i=0; i<this.getSides(); i++){
+                if(!this.vertices.get(i).equals(p.getVertex(i))){
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 }

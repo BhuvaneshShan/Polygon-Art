@@ -56,12 +56,9 @@ public class PolyartMgr {
     private static int polygonAlpha = Utils.MAX_ALPHA_OPAQUE;
 
     private static PolygonEditor polygonEditor;
+    private static UndoManager undoManager = new UndoManager();
     private Paint paint;
-    private Random rnd = new Random();
     private static Point screenDim = new Point();
-
-    //used to draw ref Image
-    private static Point refImgPosition = new Point();
 
     public enum Mode{CreationMode, EditingMode, RemoveMode};
     private static Mode curMode;
@@ -163,7 +160,24 @@ public class PolyartMgr {
         }
 
         //draw editing mode points
-        if(curMode == Mode.EditingMode && polygonEditor!=null && polygonEditor.isSelectedPolygonValid()){
+        /*
+        if(curMode == Mode.EditingMode && polygonEditor!=null && polygonEditor.isPolygonSelected()
+                && polygons.get(polygonEditor.getSelectedPolygonId()).isVisible()){
+            polygonEditor.drawEditingPoints(canvas);
+        }*/
+        //For Edit mode
+        if(curMode == Mode.EditingMode && polygonEditor!=null && polygonEditor.isPolygonSelected()){
+            //draw polygon
+            Polygon t = polygonEditor.getSelectedPolygon();
+            path.reset();
+            path = t.draw(path);
+            path.close();
+
+            paint.setColor(t.getColor());
+            paint.setAlpha(polygonAlpha);
+            canvas.drawPath(path, paint);
+
+            //draw editing points
             polygonEditor.drawEditingPoints(canvas);
         }
 
@@ -174,6 +188,7 @@ public class PolyartMgr {
         if(!appending) {
             Polygon polygon = new Polygon(curPolygonSides, touchPoint, curBrushSize, curColor, true);
             polygons.add(polygon);
+            undoManager.addStateInCreateMode(polygons, polygons.size()-1);
         }else{
             if(polygons.size()>0) {
                 Polygon neighbor = polygons.get(polygons.size() - 1);
@@ -182,6 +197,7 @@ public class PolyartMgr {
                     polygonCreationInProgress = true;
                     Polygon generated = generateNeighbor(polygons.get(polygons.size() - 1), touchPoint);
                     polygons.add(generated);
+                    undoManager.addStateInCreateMode(polygons, polygons.size()-1);
                     polygonCreationInProgress = false;
                 }
             }
@@ -194,6 +210,7 @@ public class PolyartMgr {
         for(int i=polygons.size()-1; i>=0; i--){
             Polygon p = polygons.get(i);
             if( p.contains(touchPoint) && p.isVisible()){
+                undoManager.addState(polygons, i);
                 p.setVisible(false);
                 break;
             }
@@ -204,23 +221,23 @@ public class PolyartMgr {
     public void selectPolygonOrVertexAt(float x, float y){
         polygonEditingInProgress = true;
         PointF touchPoint = new PointF(x, y);
+        boolean canAddUndoState = true;
         //check if cur polygon is transformed
         if(polygonEditor == null){
             polygonEditor = new PolygonEditor(touchPoint, polygons);
         }else if(!polygonEditor.isPolygonSelected() || !polygonEditor.isSelectedPolygonValid()){
             polygonEditor = new PolygonEditor(touchPoint, polygons);
         } else{
+            int oldPolyId = polygonEditor.getSelectedPolygonId();
             polygonEditor.selectVertexBasedOnTouchPoint(touchPoint);
             if(!polygonEditor.isVertexSelected()){
+                polygonEditor.applyTransformedPolygonTo(polygons);
                 polygonEditor = new PolygonEditor(touchPoint, polygons);
             }
-            /*boolean transformed = false;
-            if(polygonEditor.isSelPolygonValid()) {
-                transformed = polygonEditor.transformSelPolygonBy(touchPoint);
-            }
-            if(!transformed){
-                updatePolygonEditorBasedOnTouchPoint(touchPoint);
-            }*/
+            canAddUndoState = (polygonEditor.getSelectedPolygonId() != oldPolyId);
+        }
+        if(polygonEditor.isSelectedPolygonValid() && canAddUndoState){
+            undoManager.addStateInEditMode(polygons, polygonEditor.getSelectedPolygonId());
         }
         polygonEditingInProgress = false;
     }
@@ -235,74 +252,10 @@ public class PolyartMgr {
         polygonEditingInProgress = false;
     }
 
-    public void releaseVertexAt(float x, float y){
-        polygonEditingInProgress = false;
-    }
-
-    private void updatePolygonEditorBasedOnTouchPoint(PointF touchPoint){
-
-    }
-
     private Polygon generateNeighbor(Polygon t, PointF touchPoint){
         List<PointF> axisPoints = t.getVerticesOfNearestSide(touchPoint);
         Polygon polygon = Polygon.generateNeighbor(t, axisPoints);
         return polygon;
-    }
-
-    private boolean isInsideATriangle(float x, float y){
-        PointF p = new PointF(x,y);
-        for(int i=polygons.size()-1; i>=0; --i){
-            Polygon t = polygons.get(i);
-            if(t.contains(p)){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private Triangle createNewTriangle(float x, float y){
-        Triangle t = Triangle.randomUnitTriangle();
-        t.translate(new PointF(x, y));
-        t.scale(curBrushSize);
-        t.setColor(curColor);
-
-        //selCircles.add( new SelectionCircle(t.getCCenter()));
-
-        return t;
-    }
-
-    private Polygon createNewTriangleWith(Polygon t, PointF touchPoint){
-        /*
-        List<PointF> verts = t.getVerticesOfNearestSide(touchPoint); //verts has 0,1 as nearest vertices in terms of side facing and 2 index as the farthest vertex
-        Log.d(TAG, "near1:"+verts.get(0).toString()+", near2:"+verts.get(1).toString());
-
-        PointF mid = new PointF((verts.get(0).x+verts.get(1).x)/2.0f, (verts.get(0).y+verts.get(1).y)/2.0f);
-        Log.d(TAG, "mid:"+mid.toString());
-        Vec2D baseSide = new Vec2D(verts.get(0), verts.get(1));
-        Log.d(TAG,"baseSide: "+baseSide.string());
-        float adjByHyp = (float)Generic.dist(verts.get(0),verts.get(1))/(2*curBrushSize);
-        adjByHyp = adjByHyp>0.75?0.75f:adjByHyp;
-        float sinval = (float) Math.sin( Math.acos(adjByHyp));
-        Log.d(TAG, "sinval:" + sinval);
-        float len = curBrushSize * sinval;
-        Log.d(TAG, "len: " + len);
-
-        Vec2D dir = new Vec2D(t.getCenter(), mid);
-        dir.norm();
-        PointF newVert = dir.translatePointBy(mid, len+curBrushSize);
-        Log.d(TAG,"final new vert: "+newVert.x+", "+newVert.y);
-        Triangle newT = new Triangle(verts.get(0), verts.get(1), newVert);
-        newT.setColor(Color.argb(255, Color.red(curColor) + rnd.nextInt(2), Color.green(curColor)+rnd.nextInt(2), Color.blue(curColor)+rnd.nextInt(2)));
-        return newT;
-        */
-        List<PointF> axisPoints = t.getVerticesOfNearestSide(touchPoint);
-        Polygon ne = Polygon.generateNeighbor(t, axisPoints);
-
-        //selCircles.add(new SelectionCircle(axisPoints.get(0),Color.RED));
-        //selCircles.add(new SelectionCircle(axisPoints.get(1), Color.BLACK));
-        //selCircles.add(new SelectionCircle(ne.getCCenter()));
-
-        return ne;
     }
 
     private void setupPaint(){
@@ -328,6 +281,7 @@ public class PolyartMgr {
         polygonEditingInProgress = false;
         polygonEditor = null;
         curMode = Mode.CreationMode;
+        undoManager = new UndoManager();
     }
 
     public static void setBrushSize(int size){
@@ -343,6 +297,15 @@ public class PolyartMgr {
     }
 
     public static void setMode(Mode mode){
+        if(mode == Mode.RemoveMode && curMode == Mode.EditingMode && polygonEditor!=null && polygonEditor.isSelectedPolygonValid()){
+            //a polygon is selected. so delete it since we are moving to remove mode
+            //deletes the editing polygon and deinitializes the polygonEditor
+            polygonEditor = null;
+        }else if(curMode == Mode.EditingMode && polygonEditor!=null && polygonEditor.isSelectedPolygonValid()){
+            //moving away from editing mode to creation mode. so save the changes and deinitialize the polygonEditor
+            polygonEditor.applyTransformedPolygonTo(polygons);
+            polygonEditor = null;
+        }
         curMode = mode;
     }
 
@@ -405,12 +368,6 @@ public class PolyartMgr {
         return false;
     }
 
-    private boolean isWithinScreenDim(PointF p){
-        if (p.x >=0 && p.x<=screenDim.x && p.y>=0 && p.y<=screenDim.y)
-            return true;
-        return false;
-    }
-
     public Bitmap retrieveBitmap(){
         Bitmap bitmap = Bitmap.createBitmap(screenDim.x, screenDim.y, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
@@ -424,6 +381,11 @@ public class PolyartMgr {
         Display display = wm.getDefaultDisplay();
         display.getSize(screenDim);
         Log.d(TAG,"Phone rotated new dim:"+screenDim.x+", "+screenDim.y);
+    }
+
+    public static void undo(){
+        undoManager.apply(polygons);
+        polygonEditor = null;
     }
 
 }

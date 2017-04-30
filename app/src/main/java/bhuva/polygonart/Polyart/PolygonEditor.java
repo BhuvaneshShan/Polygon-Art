@@ -36,16 +36,13 @@ public class PolygonEditor {
             Polygon p = polygons.get(i);
             if ( p.isVisible() && p.contains(touchPoint)) {
                 selPolygonId = i;
-                selPolygon = p;
+                selPolygon = new Polygon(p);
+                p.setVisible(false);
                 isPolygonSelected = true;
                 break;
             }
         }
     }
-    /*PolygonEditor(int id, List<Polygon> polygons){
-        selPolygonId = id;
-        selPolygon = polygons.get(selPolygonId);
-    }*/
 
     public void drawEditingPoints(Canvas canvas){
         new SelectionCircle(selPolygon.getCCenter(), ccenterPointColor).draw(canvas);
@@ -70,28 +67,16 @@ public class PolygonEditor {
         }
     }
 
-    /*public boolean transformSelPolygonBy(PointF touchPoint){
-        if(isWithinRadius(selPolygon.getCCenter(), touchPoint, maxTouchRadius)){
-            //if ccenter move the polygon
-            translateSelPolgon(touchPoint);
-            return true;
-        }
-        for(int i=0; i<selPolygon.getSides(); i++){
-            if(isWithinRadius(selPolygon.getVertex(i), touchPoint, maxTouchRadius)) {
-                //move the vertex
-                selPolygon.setVertex(i, touchPoint);
-                return true;
-            }
-        }
-        return false;
-    }*/
-
     public void transformSelectedPointTo(PointF touchPoint){
         if(selectedPointId == CCENTER ){
             translateSelPolgon(touchPoint);
         }else{
             selPolygon.setVertex(selectedPointId, touchPoint);
         }
+    }
+
+    public void applyTransformedPolygonTo(List<Polygon> polygons){
+        polygons.set(selPolygonId, selPolygon);
     }
 
     public boolean isPolygonSelected() {
@@ -129,13 +114,11 @@ public class PolygonEditor {
         return isPolygonSelected && selPolygon.isVisible();
     }
 
-    /*
-    * to be called only if selPolygon has been instantiated
+    public int getSelectedPolygonId(){
+        return selPolygonId;
+    }
 
-    private void constructEditPoints(){
-        editPoints.add(new SelectionCircle(selPolygon.getCCenter(), ccenterPointColor));
-        for(int i=0; i<selPolygon.getSides(); i++) {
-            editPoints.add(new SelectionCircle(selPolygon.getVertex(i), vertexPointColor));
-        }
-    }*/
+    public Polygon getSelectedPolygon(){
+        return selPolygon;
+    }
 }
