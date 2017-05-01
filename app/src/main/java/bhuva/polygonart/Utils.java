@@ -29,6 +29,7 @@ public final class Utils {
 
     public static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 147;
     public static final int PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 148;
+    public static final int PERMISSIONS_REQUEST_READ_POLYGON_ART_DIR_EXTERNAL_STORAGE = 149;
 
     public static void Log(String s, int priority){
         if(priority > PriorityMin)

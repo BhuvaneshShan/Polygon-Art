@@ -12,6 +12,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -31,12 +33,15 @@ import com.jrummyapps.android.colorpicker.ColorPickerDialogListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import bhuva.polygonart.Polyart.PolyartMgr;
 import bhuva.polygonart.UI.BrushSizeSelectorDialog;
 import bhuva.polygonart.UI.CanvasSettings;
+import bhuva.polygonart.UI.CreateNewFileDialog;
 
-public class MainActivity extends AppCompatActivity implements BrushSizeSelectorDialog.BrushSelectionListener, ColorPickerDialogListener, CanvasSettings.CanvasSettingsListener {
+public class MainActivity extends AppCompatActivity implements BrushSizeSelectorDialog.BrushSelectionListener, ColorPickerDialogListener, CanvasSettings.CanvasSettingsListener, CreateNewFileDialog.NewFileDialogListener {
 
     public static final String PolygonArt = "PolygonArt";
 
@@ -45,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         super.onCreate(savedInstanceState);
         enableFullScreenMode();
         setContentView(R.layout.activity_main);
+        onClickCreateNewFile(null);
     }
 
     @Override
@@ -93,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
 
     //Buttons clicks
     public void onClickCreateNewFile(View view) {
+        /*
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle(PolygonArt)
                 .setMessage("Would you like to create a new canvas?")
@@ -113,8 +120,17 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
                         dialog.dismiss();
                     }
                 });
-        dialog.show();
+        dialog.show();*/
+        CreateNewFileDialog dialog = new CreateNewFileDialog();
+        dialog.show(getFragmentManager(), "PolygonArt dialog");
 
+    }
+
+    public void onNewFile(){
+        PolyartMgr.clearAll();
+        reDrawDrawingView();
+        refreshIcons();
+        enableFullScreenMode();
     }
 
     public void onClickBrushSize(View view) {
@@ -205,6 +221,15 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
                     this.startActivityForResult(galleryIntent, Utils.INTENT_RESULT_SELECT_REF_IMG);
                 }
                 break;
+
+            /*case Utils.PERMISSIONS_REQUEST_READ_POLYGON_ART_DIR_EXTERNAL_STORAGE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Uri uri = Uri.fromFile(getPolygonArtDir());
+                    Intent galleryIntent = new Intent(Intent.ACTION_VIEW);
+                    galleryIntent.setDataAndType(uri, "resource/folder");
+                    this.startActivity(galleryIntent);
+                }
+                break;*/
         }
     }
 
@@ -281,6 +306,33 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
             }
 
             File file = new File(polyartDir, genFileName());
+            if (file.exists()) {
+                file.delete();
+            }
+            file.createNewFile();
+
+            FileOutputStream filesOpStream = new FileOutputStream(file);
+            content.compress(Bitmap.CompressFormat.JPEG, 100, filesOpStream);
+            filesOpStream.flush();
+            filesOpStream.close();
+
+            exposeToGallery(file.getAbsolutePath());
+
+            return file.getName();
+        } catch (Exception e) {
+            Utils.Log(e.getMessage(), 5);
+            return "Error while saving: "+e.getLocalizedMessage();
+        }
+    }
+
+    private String saveAsJpeg(Bitmap content, String filename){
+        try {
+            File polyartDir = getPolygonArtDir();
+            if (!polyartDir.exists()) {
+                polyartDir.mkdirs();
+            }
+
+            File file = new File(polyartDir, filename);
             if (file.exists()) {
                 file.delete();
             }
@@ -439,4 +491,32 @@ public class MainActivity extends AppCompatActivity implements BrushSizeSelector
         }
 
     }
+    /*
+    public void showGallery(){
+        File polyartDir = getPolygonArtDir();
+        if (!polyartDir.exists()) {
+            polyartDir.mkdirs();
+            addExampleImages();
+        }
+
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+        if (permissionCheck == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, Utils.PERMISSIONS_REQUEST_READ_POLYGON_ART_DIR_EXTERNAL_STORAGE);
+        }else {
+            Uri uri = Uri.fromFile(getPolygonArtDir());
+            Intent galleryIntent = new Intent(Intent.ACTION_VIEW);
+            galleryIntent.setDataAndType(uri, "resource/folder");
+            this.startActivity(galleryIntent);
+        }
+    }
+
+    private void addExampleImages(){
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.RGB_565;
+
+        saveAsJpeg(BitmapFactory.decodeResource(this.getResources(), R.drawable.polygon_art_example_1, options), PolygonArt+"_Example_1.jpeg");
+        saveAsJpeg(BitmapFactory.decodeResource(this.getResources(), R.drawable.polygon_art_example_2, options), PolygonArt+"_Example_2.jpeg");
+        saveAsJpeg(BitmapFactory.decodeResource(this.getResources(), R.drawable.polygon_art_example_3, options), PolygonArt+"_Example_3.jpeg");
+        saveAsJpeg(BitmapFactory.decodeResource(this.getResources(), R.drawable.polygon_art_example_4, options), PolygonArt+"_Example_4.jpeg");
+    }*/
 }
